@@ -1,28 +1,42 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\Staff\BookingController as StaffBookingController;
+use App\Http\Controllers\Staff\FieldController as StaffFieldController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\SportsFieldController as AdminFieldController;
+use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+Route::get('/', fn() => view('welcome'))->name('home');
 
-Route::get('/', function () {
-    return view('welcome');
+// ต้องล็อกอินก่อน
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    // USER routes
+    Route::middleware('user')->group(function () {
+        Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+        Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+        Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+        Route::delete('/bookings/{id}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+    });
+
+    // STAFF routes
+    Route::prefix('staff')->name('staff.')->middleware('staff')->group(function () {
+        Route::get('/bookings', [StaffBookingController::class, 'index'])->name('bookings.index');
+        Route::post('/bookings/{id}/approve', [StaffBookingController::class, 'approve'])->name('bookings.approve');
+        Route::post('/bookings/{id}/reject', [StaffBookingController::class, 'reject'])->name('bookings.reject');
+        Route::get('/fields/schedule', [StaffFieldController::class, 'schedule'])->name('fields.schedule');
+    });
+
+    // ADMIN routes
+    Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::resource('/users', AdminUserController::class);
+        Route::resource('/fields', AdminFieldController::class);
+        Route::resource('/announcements', AdminAnnouncementController::class);
+    });
 });
 
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified'
-])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
-});
+// require __DIR__.'/auth.php';

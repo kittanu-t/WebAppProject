@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class SportsField extends Model
+{
+    protected $fillable = [
+        'name','sport_type','location','capacity','status',
+        'owner_id','min_duration_minutes','max_duration_minutes','lead_time_hours',
+    ];
+
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function fieldImages(): HasMany
+    {
+        return $this->hasMany(FieldImage::class);
+    }
+
+    public function fieldClosures(): HasMany
+    {
+        return $this->hasMany(FieldClosure::class);
+    }
+
+}
