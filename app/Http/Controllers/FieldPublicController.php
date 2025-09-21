@@ -37,7 +37,8 @@ class FieldPublicController extends Controller
         $bookingEvents = $bookings->map(function ($b) {
             $date = \Carbon\Carbon::parse($b->date)->toDateString(); // YYYY-MM-DD
 
-            // ดึงเฉพาะเวลา (กรณี $b->start_time เป็น Carbon ให้ format ออกมา)
+            // ดึงเฉพาะเวลา (กรณี $b->s
+            // tart_time เป็น Carbon ให้ format ออกมา)
             $startTime = $b->start_time instanceof \Carbon\Carbon
                 ? $b->start_time->format('H:i:s')
                 : (string) $b->start_time;

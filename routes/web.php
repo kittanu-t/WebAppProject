@@ -9,15 +9,23 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\SportsFieldController as AdminFieldController;
 use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Controllers\FieldPublicController;
+use App\Http\Controllers\NotificationController;
 
-Route::get('/', fn() => view('welcome'))->name('home');
+Route::get('/', fn() => view('home'))->name('home');
 
 Route::get('/fields/{field}', [FieldPublicController::class, 'show'])->name('fields.show');
 Route::get('/api/fields/{field}/events', [FieldPublicController::class, 'events'])->name('fields.events');
 // ต้องล็อกอินก่อน
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
 
+    // feed สำหรับ dropdown (JSON 10 อัน)
+    Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
 
+    // USER routes
     Route::middleware('user')->group(function () {
         Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
         Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
@@ -31,7 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/bookings/{id}/approve', [StaffBookingController::class, 'approve'])->name('bookings.approve');
         Route::post('/bookings/{id}/reject', [StaffBookingController::class, 'reject'])->name('bookings.reject');
         Route::get('/fields/schedule', [StaffFieldController::class, 'schedule'])->name('fields.schedule');
-        Route::get('/api/fields/{field}/events', [StaffFieldController::class, 'events'])->name('staff.fields.events');
+        Route::get('/api/fields/{field}/events', [StaffFieldController::class, 'events'])->name('fields.events');
     });
 
     // ADMIN routes
