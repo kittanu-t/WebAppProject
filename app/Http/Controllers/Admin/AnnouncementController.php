@@ -3,13 +3,32 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreAnnouncementRequest;
+use App\Http\Requests\Admin\UpdateAnnouncementRequest;
+use App\Models\Announcement;
 use Illuminate\Http\Request;
 
 class AnnouncementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('admin.announcements.index');
+        $q = Announcement::with('creator');
+
+        if ($search = $request->query('q')) {
+            $q->where(function($w) use ($search) {
+                $w->where('title','like',"%$search%")
+                  ->orWhere('content','like',"%$search%");
+            });
+        }
+        if ($aud = $request->query('audience')) {
+            $q->where('audience', $aud);
+        }
+
+        $announcements = $q->orderByDesc('published_at')
+                           ->orderByDesc('created_at')
+                           ->paginate(20)->withQueryString();
+
+        return view('admin.announcements.index', compact('announcements'));
     }
 
     public function create()
@@ -17,28 +36,48 @@ class AnnouncementController extends Controller
         return view('admin.announcements.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreAnnouncementRequest $request)
     {
-        // logic บันทึก announcement
+        $data = $request->validated();
+
+        Announcement::create([
+            'title'       => $data['title'],
+            'content'     => $data['content'],
+            'audience'    => $data['audience'],
+            'created_by'  => $request->user()->id,
+            'published_at'=> $data['published_at'] ?? now(), // ถ้าไม่ใส่ถือว่า publish ทันที
+        ]);
+
+        return redirect()->route('admin.announcements.index')->with('status','สร้างประกาศสำเร็จ');
     }
 
-    public function show($id)
+    public function show(Announcement $announcement)
     {
-        return view('admin.announcements.show');
+        return view('admin.announcements.show', compact('announcement'));
     }
 
-    public function edit($id)
+    public function edit(Announcement $announcement)
     {
-        return view('admin.announcements.edit');
+        return view('admin.announcements.edit', compact('announcement'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateAnnouncementRequest $request, Announcement $announcement)
     {
-        // logic อัพเดท announcement
+        $data = $request->validated();
+
+        $announcement->update([
+            'title'       => $data['title'],
+            'content'     => $data['content'],
+            'audience'    => $data['audience'],
+            'published_at'=> $data['published_at'],
+        ]);
+
+        return redirect()->route('admin.announcements.index')->with('status','อัปเดตประกาศสำเร็จ');
     }
 
-    public function destroy($id)
+    public function destroy(Announcement $announcement)
     {
-        // logic ลบ announcement
+        $announcement->delete();
+        return redirect()->route('admin.announcements.index')->with('status','ลบประกาศสำเร็จ');
     }
 }

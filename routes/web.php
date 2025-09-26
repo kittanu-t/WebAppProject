@@ -10,20 +10,53 @@ use App\Http\Controllers\Admin\SportsFieldController as AdminFieldController;
 use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Controllers\FieldPublicController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AnnouncementPublicController;
+use App\Models\Announcement;
 
-Route::get('/', fn() => view('home'))->name('home');
 
+/*
+|--------------------------------------------------------------------------
+| Public routes
+|--------------------------------------------------------------------------
+*/
+
+// หน้า Home: แสดงประกาศล่าสุด 5 รายการ
+Route::get('/', function () {
+    $ann = Announcement::whereNotNull('published_at')
+        ->orderByDesc('published_at')
+        ->limit(5)
+        ->get();
+
+    // ถ้ามี resources/views/welcome.blade.php ก็ส่งไปที่หน้านี้
+    return view('welcome', ['announcements' => $ann]);
+})->name('home');
+
+// หน้า Field List (ผู้ใช้ทั่วไปเข้าดูได้ ถ้าต้องการให้ล็อกอินค่อยย้ายเข้า group ด้านล่าง)
+Route::get('/fields', [FieldPublicController::class, 'index'])->name('fields.index');
+
+// หน้า Field Detail + Calendar (ผู้ใช้ทั่วไปเข้าดูได้ ถ้าต้องการให้ล็อกอินค่อยย้ายเข้า group ด้านล่าง)
 Route::get('/fields/{field}', [FieldPublicController::class, 'show'])->name('fields.show');
-Route::get('/api/fields/{field}/events', [FieldPublicController::class, 'events'])->name('fields.events');
-// ต้องล็อกอินก่อน
-Route::middleware(['auth', 'verified'])->group(function () {
-    // Notification routes
+
+// JSON events สำหรับ FullCalendar ฝั่งผู้ใช้ (public หรือจะย้ายไปหลัง auth ก็ได้)
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated routes (ต้องล็อกอิน + active + verified)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'active', 'verified'])->group(function () {
+
+    // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
-
-    // feed สำหรับ dropdown (JSON 10 อัน)
     Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
+    Route::get('/announcements', [AnnouncementPublicController::class, 'index'])
+    ->name('user.announcements.index');
+    Route::get('/announcements/{announcement}', [AnnouncementPublicController::class, 'show'])
+    ->name('user.announcements.show');
 
     // USER routes
     Route::middleware('user')->group(function () {
@@ -38,8 +71,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/bookings', [StaffBookingController::class, 'index'])->name('bookings.index');
         Route::post('/bookings/{id}/approve', [StaffBookingController::class, 'approve'])->name('bookings.approve');
         Route::post('/bookings/{id}/reject', [StaffBookingController::class, 'reject'])->name('bookings.reject');
+        Route::get('/fields', [StaffFieldController::class, 'myFields'])->name('fields.index');
+        Route::post('/fields/{field}/close', [StaffFieldController::class, 'close'])->name('fields.close');
+        Route::post('/fields/{field}/open', [StaffFieldController::class, 'open'])->name('fields.open');
         Route::get('/fields/schedule', [StaffFieldController::class, 'schedule'])->name('fields.schedule');
-        Route::get('/api/fields/{field}/events', [StaffFieldController::class, 'events'])->name('fields.events');
+        Route::get('/api/fields/{field}/events', [FieldPublicController::class, 'events'])->name('fields.events');
+
     });
 
     // ADMIN routes
@@ -51,4 +88,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-// require __DIR__.'/auth.php';

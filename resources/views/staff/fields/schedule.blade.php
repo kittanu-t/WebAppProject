@@ -1,71 +1,57 @@
 @extends('layouts.app')
+
 @section('title','Field Schedule')
 
 @section('content')
-<h1>Staff: Field Schedule</h1>
+<h1>Field Schedule</h1>
 
-{{-- เลือกสนามที่ดูแล (ภายหลังค่อยทำ dynamic); ตอนนี้สมมุติ field_id = 1 --}}
-@php $fieldId = request('field_id', 1); @endphp
+@if($fields->isEmpty())
+  <p>คุณยังไม่ได้รับมอบหมายสนาม</p>
+@else
+  <label for="field-select">เลือกสนาม:</label>
+  <select id="field-select">
+    @foreach($fields as $f)
+      <option value="{{ $f->id }}">{{ $f->name }} ({{ $f->sport_type }})</option>
+    @endforeach
+  </select>
 
-<div id="calendar"
-     data-events-url="{{ route('staff.fields.events', $fieldId) }}">
-</div>
+  <div id="calendar" style="margin-top:16px;"></div>
+@endif
 
-{{-- Init FullCalendar --}}
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const el = document.getElementById('calendar')
-    const eventsUrl = el.dataset.eventsUrl
+document.addEventListener('DOMContentLoaded', function () {
+    const select = document.getElementById('field-select');
+    const calEl = document.getElementById('calendar');
 
-    const { Calendar, dayGridPlugin, timeGridPlugin, interactionPlugin } = window.FullCalendar
+    if (!select) return;
 
-    const calendar = new Calendar(el, {
-        plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-        initialView: 'timeGridWeek',    // หรือ 'dayGridMonth'
-        height: 'auto',
-        selectable: false,
+    const calendar = new FullCalendar.Calendar(calEl, {
+        initialView: 'timeGridWeek',
+        height: 600,
         nowIndicator: true,
-        // ถ้าคุณอยากกำหนด timezone: 'local' หรือ 'UTC' ก็ได้ (ค่อยตัดสินทีหลัง)
-        // timeZone: 'local',
-
+        slotMinTime: '06:00:00',
+        slotMaxTime: '23:00:00',
+        allDaySlot: false,
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
+        events: function(fetchInfo, success, failure) {
+            const fieldId = select.value;
+            if (!fieldId) { success([]); return; }
+            fetch(`/staff/api/fields/${fieldId}/events?start=${encodeURIComponent(fetchInfo.start.toISOString())}&end=${encodeURIComponent(fetchInfo.end.toISOString())}`)
+                .then(r => r.json())
+                .then(data => success(data))
+                .catch(err => failure(err));
+        }
+    });
 
-        // ดึง events จาก endpoint เรา
-        events: function(fetchInfo, successCallback, failureCallback) {
-            const params = new URLSearchParams({
-                start: fetchInfo.startStr,
-                end:   fetchInfo.endStr
-            })
-            fetch(`${eventsUrl}?${params.toString()}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                },
-                credentials: 'same-origin'
-            })
-            .then(r => r.json())
-            .then(data => successCallback(data))
-            .catch(err => failureCallback(err))
-        },
+    calendar.render();
 
-        // ป้องกัน drag/resize ชั่วคราว (เดี๋ยวค่อยเปิดถ้าต้องการปรับเวลาบน calendar)
-        editable: false,
-        eventResizableFromStart: false,
-
-        // ปรับแต่ง render คร่าว ๆ (CSS ค่อยทำทีหลัง)
-        eventDidMount: function(info) {
-            // ถ้าต้องการ tooltip อย่างง่าย
-            if (info.event.title) {
-                info.el.setAttribute('title', info.event.title)
-            }
-        },
-    })
-
-    calendar.render()
-})
+    select.addEventListener('change', function () {
+        calendar.refetchEvents();
+    });
+});
 </script>
 @endsection

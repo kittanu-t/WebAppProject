@@ -1,35 +1,25 @@
 @extends('layouts.app')
-
-@section('title','Manage Bookings')
+@section('title','My Bookings')
 
 @section('content')
-<h1>Bookings for My Fields</h1>
+<h1>My Bookings</h1>
 
-@if($bookings->count() === 0)
-  <p>ยังไม่มีการจอง</p>
-@endif
-
-@foreach($bookings as $b)
+@forelse($bookings as $b)
   <div class="border p-3 mb-3">
-    <div>
-      <strong>Field:</strong> {{ $b->sportsField->name ?? '-' }} <br>
-      <strong>User:</strong> {{ $b->user->name ?? '-' }} <br>
-      <strong>Date:</strong> {{ $b->date }} ({{ $b->start_time }} - {{ $b->end_time }}) <br>
-      <strong>Status:</strong> {{ $b->status }}
-    </div>
+      <div><strong>#{{ $b->id }}</strong> — {{ $b->sportsField->name ?? '-' }}</div>
+      <div>{{ $b->date }} ({{ $b->start_time }} - {{ $b->end_time }}) — <strong>{{ ucfirst($b->status) }}</strong></div>
 
-    @if($b->status === 'pending')
-      <form method="POST" action="{{ route('staff.bookings.approve', $b->id) }}" class="inline">
-        @csrf
-        <button class="bg-green-500 text-white px-2 py-1">Approve</button>
-      </form>
-      <form method="POST" action="{{ route('staff.bookings.reject', $b->id) }}" class="inline">
-        @csrf
-        <button class="bg-red-500 text-white px-2 py-1">Reject</button>
-      </form>
-    @endif
+      @if(!in_array($b->status, ['approved','completed','cancelled']))
+        <form method="POST" action="{{ route('bookings.destroy', $b->id) }}" style="display:inline;">
+            @csrf
+            @method('DELETE') {{-- สำคัญ! ใช้ DELETE --}}
+            <button type="submit">Cancel</button>
+        </form>
+      @endif
   </div>
-@endforeach
+@empty
+  <p>ยังไม่มีการจอง</p>
+@endforelse
 
-<div>{{ $bookings->links() }}</div>
+@if(isset($bookings)) {{ $bookings->links() }} @endif
 @endsection

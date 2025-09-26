@@ -90,4 +90,37 @@ class FieldPublicController extends Controller
 
         return response()->json($bookingEvents->merge($closureEvents)->values());
     }
+    public function index(Request $request)
+    {
+        $q = SportsField::query();
+
+        // ค้นหาชื่อ/ที่ตั้ง
+        if ($search = $request->query('q')) {
+            $q->where(function ($w) use ($search) {
+                $w->where('name', 'like', "%$search%")
+                  ->orWhere('location', 'like', "%$search%");
+            });
+        }
+
+        // กรองชนิดกีฬา
+        if ($type = $request->query('sport_type')) {
+            $q->where('sport_type', $type);
+        }
+
+        // เฉพาะสถานะ available
+        if ($request->boolean('only_available')) {
+            $q->where('status', 'available');
+        }
+
+        $fields = $q->orderBy('name')->paginate(12)->withQueryString();
+
+        // ดึงรายการชนิดกีฬาไว้ทำ filter (distinct)
+        $types = SportsField::select('sport_type')
+            ->distinct()
+            ->orderBy('sport_type')
+            ->pluck('sport_type')
+            ->toArray();
+
+        return view('fields.index', compact('fields', 'types'));
+    }
 }

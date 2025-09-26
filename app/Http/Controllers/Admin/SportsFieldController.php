@@ -3,42 +3,81 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreFieldRequest;
+use App\Http\Requests\Admin\UpdateFieldRequest;
+use App\Models\SportsField;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class SportsFieldController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('admin.fields.index');
+        $q = SportsField::with('owner');
+
+        if ($search = $request->query('q')) {
+            $q->where(function($w) use ($search) {
+                $w->where('name','like',"%$search%")
+                  ->orWhere('sport_type','like',"%$search%")
+                  ->orWhere('location','like',"%$search%");
+            });
+        }
+
+        $fields = $q->orderBy('name')->paginate(20)->withQueryString();
+        return view('admin.fields.index', compact('fields'));
     }
 
     public function create()
     {
-        return view('admin.fields.create');
+        $staffs = User::where('role','staff')->orderBy('name')->get(['id','name']);
+        return view('admin.fields.create', compact('staffs'));
     }
 
-    public function store(Request $request)
+    public function store(StoreFieldRequest $request)
     {
-        // logic สร้าง field
+        $data = $request->validated();
+
+        // owner ต้องเป็น staff
+        if (!empty($data['owner_id'])) {
+            $isStaff = User::where('id',$data['owner_id'])->where('role','staff')->exists();
+            if (!$isStaff) {
+                return back()->withErrors(['owner_id' => 'Owner ต้องเป็นผู้ใช้ role=staff เท่านั้น'])->withInput();
+            }
+        }
+
+        SportsField::create($data);
+        return redirect()->route('admin.fields.index')->with('status','สร้างสนามสำเร็จ');
     }
 
-    public function show($id)
+    public function show(SportsField $field)
     {
-        return view('admin.fields.show');
+        return view('admin.fields.show', compact('field'));
     }
 
-    public function edit($id)
+    public function edit(SportsField $field)
     {
-        return view('admin.fields.edit');
+        $staffs = User::where('role','staff')->orderBy('name')->get(['id','name']);
+        return view('admin.fields.edit', compact('field','staffs'));
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateFieldRequest $request, SportsField $field)
     {
-        // logic อัพเดท field
+        $data = $request->validated();
+
+        if (!empty($data['owner_id'])) {
+            $isStaff = User::where('id',$data['owner_id'])->where('role','staff')->exists();
+            if (!$isStaff) {
+                return back()->withErrors(['owner_id' => 'Owner ต้องเป็นผู้ใช้ role=staff เท่านั้น'])->withInput();
+            }
+        }
+
+        $field->update($data);
+        return redirect()->route('admin.fields.index')->with('status','อัปเดตสนามสำเร็จ');
     }
 
-    public function destroy($id)
+    public function destroy(SportsField $field)
     {
-        // logic ลบ field
+        $field->delete();
+        return redirect()->route('admin.fields.index')->with('status','ลบสนามสำเร็จ');
     }
 }

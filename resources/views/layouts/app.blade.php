@@ -17,11 +17,13 @@
             {{-- เมนูตามบทบาท (ตัวอย่างลิงก์หลัก) --}}
             @if(auth()->user()->role === 'user')
                 <a href="{{ route('bookings.index') }}">My Bookings</a>
+                <a href="{{ route('fields.index') }}">Fields</a>
+                <a href="{{ route('user.announcements.index') }}">Announcements</a>
             @endif
 
             @if(auth()->user()->role === 'staff')
                 <a href="{{ route('staff.bookings.index') }}">Requests</a>
-                <a href="{{ route('staff.fields.schedule') }}">My Fields Schedule</a>
+                <a href="{{ route('staff.fields.index') }}">My Fields</a>
             @endif
 
             @if(auth()->user()->role === 'admin')
