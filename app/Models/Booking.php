@@ -23,9 +23,9 @@ class Booking extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function sportsField(): BelongsTo
-    {
-        return $this->belongsTo(SportsField::class);
+    public function sportsField() 
+    { 
+        return $this->belongsTo(SportsField::class, 'sports_field_id'); 
     }
 
     public function approver(): BelongsTo
@@ -36,6 +36,11 @@ class Booking extends Model
     public function logs(): HasMany
     {
         return $this->hasMany(BookingLog::class);
+    }
+    
+    public function unit() 
+    { 
+        return $this->belongsTo(FieldUnit::class, 'field_unit_id'); 
     }
 
 }

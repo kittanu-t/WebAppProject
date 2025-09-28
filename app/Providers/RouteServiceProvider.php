@@ -11,42 +11,54 @@ use Illuminate\Support\Facades\Route;
 class RouteServiceProvider extends ServiceProvider
 {
     /**
-     * The path to the "home" route for your application.
-     *
-     * Typically, users are redirected here after authentication.
-     *
-     * @var string
+     * เส้นทางที่ระบบจะส่งผู้ใช้ไปหลังจาก login
+     * (ใช้คู่กับ FortifyServiceProvider → LoginResponse override)
      */
-    public const HOME = '/';
+    public const HOME = '/'; // ค่า default ไม่ใช้แล้ว แต่ Laravel บังคับให้มี
 
     /**
-     * Define your route model bindings, pattern filters, and other route configuration.
-     *
-     * @return void
+     * Bootstrap any application services.
      */
-    public function boot()
+    public function boot(): void
     {
         $this->configureRateLimiting();
 
         $this->routes(function () {
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
-
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });
     }
 
     /**
-     * Configure the rate limiters for the application.
-     *
-     * @return void
+     * Rate limiter พื้นฐาน (ไม่จำเป็นต้องแก้ แต่ Laravel สร้างมาให้)
      */
-    protected function configureRateLimiting()
+    protected function configureRateLimiting(): void
     {
-        RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        RateLimiter::for('global', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
         });
+    }
+
+    /**
+     * ฟังก์ชันกำหนด redirect ตาม role ของ user หลัง login
+     */
+    public static function redirectTo()
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return '/'; // กัน fallback
+        }
+
+        if ($user->role === 'admin') {
+            return route('admin.dashboard');
+        }
+
+        if ($user->role === 'staff') {
+            return route('staff.bookings.index');
+        }
+
+        // default → user ปกติ
+        return route('bookings.index');
     }
 }

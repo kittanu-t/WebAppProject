@@ -29,7 +29,10 @@
 <div>Min Duration (min) <input name="min_duration_minutes" type="number" min="15" value="{{ old('min_duration_minutes',$field->min_duration_minutes) }}"></div>
 <div>Max Duration (min) <input name="max_duration_minutes" type="number" min="15" value="{{ old('max_duration_minutes',$field->max_duration_minutes) }}"></div>
 <div>Lead Time (hours) <input name="lead_time_hours" type="number" min="0" value="{{ old('lead_time_hours',$field->lead_time_hours) }}"></div>
-
+<p style="margin-top:12px;">
+  Units in this field: <strong>{{ $field->units_count }}</strong>
+  <a href="{{ route('admin.fields.units.index',$field) }}">Manage Units</a>
+</p>
 <button type="submit">Update</button>
 </form>
 @endsection

@@ -14,9 +14,9 @@ class FieldClosure extends Model
         'end_datetime'   => 'datetime',
     ];
 
-    public function sportsField(): BelongsTo
-    {
-        return $this->belongsTo(SportsField::class);
+    public function unit() 
+    { 
+        return $this->belongsTo(FieldUnit::class, 'field_unit_id'); 
     }
 
     public function creator(): BelongsTo

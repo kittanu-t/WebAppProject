@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Models\SportsField;
 use App\Models\FieldClosure;
 use App\Models\BookingLog;
+use App\Models\FieldUnit;
 
 class BookingController extends Controller
 {
@@ -31,14 +32,12 @@ class BookingController extends Controller
      */
     public function create(Request $request)
     {
-        $fields = SportsField::where('status', 'available')
-            ->orderBy('name')
-            ->get(['id','name','sport_type','min_duration_minutes','max_duration_minutes','lead_time_hours']);
+        // โหลดสนามพร้อม units (สำหรับ prefill ตอนเปิดหน้าพร้อม field/unit จาก query)
+        $fields   = \App\Models\SportsField::with('units')->orderBy('name')->get();
+        $prefield = $request->query('field');   // ?field=ID  (optional)
+        $preunit  = $request->query('unit');    // ?unit=ID   (optional)
 
-        // ถ้ามาจากหน้า field detail จะมี query string ?field_id=...
-        $prefield = $request->query('field_id');
-
-        return view('user.bookings.create', compact('fields','prefield'));
+        return view('user.bookings.create', compact('fields','prefield','preunit'));
     }
 
     /**
@@ -46,9 +45,10 @@ class BookingController extends Controller
      */
     public function store(Request $request)
     {
-        // --- 1) Validate input ---
+        // 1) Validate
         $data = $request->validate([
             'sports_field_id' => ['required','integer','exists:sports_fields,id'],
+            'field_unit_id'   => ['required','integer','exists:field_units,id'], // ✅ คอร์ต
             'date'            => ['required','date'],
             'start_time'      => ['required','date_format:H:i'],
             'end_time'        => ['required','date_format:H:i','after:start_time'],
@@ -56,36 +56,37 @@ class BookingController extends Controller
             'contact_phone'   => ['nullable','string','max:30'],
         ]);
 
-        // --- 2) โหลดข้อมูลสนาม ---
+        // 2) โหลดสนาม & คอร์ต และตรวจความสัมพันธ์
         $field = SportsField::findOrFail($data['sports_field_id']);
+        $unit  = FieldUnit::where('sports_field_id', $field->id)
+                    ->findOrFail($data['field_unit_id']);
+
         if ($field->status !== 'available') {
             return back()->withErrors(['sports_field_id' => 'สนามนี้ไม่พร้อมให้จองในขณะนี้'])->withInput();
         }
+        if ($unit->status !== 'available') {
+            return back()->withErrors(['field_unit_id' => 'คอร์ตนี้ไม่พร้อมให้จองในขณะนี้'])->withInput();
+        }
 
-        // --- 3) เตรียมเวลา ---
-        $date      = Carbon::parse($data['date'])->toDateString();
-        $startTime = $data['start_time'];
-        $endTime   = $data['end_time'];
+        // 3) เตรียมเวลา
+        $date      = Carbon::parse($data['date'])->toDateString(); // Y-m-d
+        $startDT   = Carbon::parse($date.' '.$data['start_time'].':00'); // Y-m-d H:i:s
+        $endDT     = Carbon::parse($date.' '.$data['end_time'].':00');
 
-        $startDT = Carbon::parse("$date $startTime");
-        $endDT   = Carbon::parse("$date $endTime");
-
-        // --- 4) ตรวจเงื่อนไขธุรกิจ ---
-        // 4.1 เวลาเริ่มต้องอยู่ในอนาคต และจองล่วงหน้า >= lead_time_hours
+        // 4) Business rules
+        // 4.1 ต้องเป็นอนาคต + lead time
         if (now()->gte($startDT)) {
             return back()->withErrors(['start_time' => 'เวลาเริ่มต้องอยู่ในอนาคต'])->withInput();
         }
         if (now()->diffInMinutes($startDT, false) < ($field->lead_time_hours * 60)) {
             return back()->withErrors(['start_time' => "ต้องจองล่วงหน้าอย่างน้อย {$field->lead_time_hours} ชั่วโมง"])
-                         ->withInput();
+                        ->withInput();
         }
-
-        // 4.2 ต้องเริ่มและจบในวันเดียวกัน
+        // 4.2 ต้องอยู่ในวันเดียวกัน
         if ($startDT->toDateString() !== $endDT->toDateString()) {
             return back()->withErrors(['end_time' => 'การจองต้องอยู่ภายในวันเดียวกัน'])->withInput();
         }
-
-        // 4.3 ความยาวการจองต้องอยู่ระหว่าง min/max
+        // 4.3 ระยะเวลาอยู่ใน min/max ของสนามใหญ่ (หรือถ้าต้องการใช้ของคอร์ตก็เปลี่ยนมาอิง $unit)
         $durationMinutes = $startDT->diffInMinutes($endDT);
         if ($durationMinutes < $field->min_duration_minutes) {
             return back()->withErrors(['end_time' => "ต้องไม่น้อยกว่า {$field->min_duration_minutes} นาที"])->withInput();
@@ -94,36 +95,43 @@ class BookingController extends Controller
             return back()->withErrors(['end_time' => "ต้องไม่เกิน {$field->max_duration_minutes} นาที"])->withInput();
         }
 
-        // --- 5) ตรวจชนกับ field_closures ---
+        // 5) กันช่วงปิด (ทั้งสนาม หรือเฉพาะคอร์ต)
         $closureBlocked = FieldClosure::where('sports_field_id', $field->id)
+            ->where(function($q) use ($unit) {
+                $q->whereNull('field_unit_id')      // ปิดทั้งสนาม
+                ->orWhere('field_unit_id', $unit->id); // หรือปิดคอร์ตนี้
+            })
             ->where('start_datetime', '<', $endDT)
-            ->where('end_datetime', '>', $startDT)
+            ->where('end_datetime',   '>', $startDT)
             ->exists();
+
         if ($closureBlocked) {
-            return back()->withErrors(['date' => 'ช่วงเวลานี้สนามปิดให้บริการ'])->withInput();
+            return back()->withErrors(['date' => 'ช่วงเวลานี้สนาม/คอร์ตปิดให้บริการ'])->withInput();
         }
 
-        // --- 6) ตรวจ overlap กับ booking อื่น (ไม่นับ rejected/cancelled) ---
-        $overlap = Booking::where('sports_field_id', $field->id)
+        // 6) กันซ้อนกับการจองอื่น (ดูเฉพาะคอร์ตเดียวกัน และไม่นับ rejected/cancelled)
+        $overlap = Booking::where('field_unit_id', $unit->id)
             ->where('date', $date)
-            ->whereNotIn('status', ['cancelled','rejected'])
-            ->where(function ($q) use ($startTime, $endTime) {
-                $q->where('start_time', '<', $endTime)
-                  ->where('end_time', '>', $startTime);
+            ->whereNotIn('status', ['rejected','cancelled'])
+            ->where(function ($q) use ($data) {
+                $q->where('start_time', '<', $data['end_time'].':00')
+                ->where('end_time',   '>', $data['start_time'].':00');
             })
             ->exists();
+
         if ($overlap) {
-            return back()->withErrors(['start_time' => 'ช่วงเวลานี้มีการจองแล้ว'])->withInput();
+            return back()->withErrors(['start_time' => 'ช่วงเวลานี้มีการจองคอร์ตรายนี้แล้ว'])->withInput();
         }
 
-        // --- 7) บันทึก + Log ---
-        DB::transaction(function () use ($data, $date, $startTime, $endTime, $field) {
+        // 7) บันทึก + Log (transaction)
+        DB::transaction(function () use ($data, $date, $field, $unit) {
             $booking = Booking::create([
                 'user_id'         => auth()->id(),
                 'sports_field_id' => $field->id,
+                'field_unit_id'   => $unit->id,         // ✅ บันทึกคอร์ต
                 'date'            => $date,
-                'start_time'      => $startTime . ':00',
-                'end_time'        => $endTime . ':00',
+                'start_time'      => $data['start_time'].':00',
+                'end_time'        => $data['end_time'].':00',
                 'status'          => 'pending',
                 'purpose'         => $data['purpose'] ?? null,
                 'contact_phone'   => $data['contact_phone'] ?? null,

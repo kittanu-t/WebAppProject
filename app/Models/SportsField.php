@@ -18,9 +18,9 @@ class SportsField extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
-    public function bookings(): HasMany
-    {
-        return $this->hasMany(Booking::class);
+    public function bookings() 
+    { 
+        return $this->hasManyThrough(Booking::class, FieldUnit::class, 'sports_field_id', 'field_unit_id'); 
     }
 
     public function fieldImages(): HasMany
@@ -31,6 +31,10 @@ class SportsField extends Model
     public function fieldClosures(): HasMany
     {
         return $this->hasMany(FieldClosure::class);
+    }
+    public function units() 
+    { 
+        return $this->hasMany(FieldUnit::class); 
     }
 
 }

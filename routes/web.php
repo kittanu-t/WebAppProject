@@ -1,18 +1,24 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BookingController;
-use App\Http\Controllers\Staff\BookingController as StaffBookingController;
-use App\Http\Controllers\Staff\FieldController as StaffFieldController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\SportsFieldController as AdminFieldController;
-use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Controllers\FieldPublicController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AnnouncementPublicController;
-use App\Models\Announcement;
 
+use App\Http\Controllers\Staff\BookingController as StaffBookingController;
+use App\Http\Controllers\Staff\FieldController   as StaffFieldController;
+
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController        as AdminUserController;
+use App\Http\Controllers\Admin\SportsFieldController as AdminFieldController;   // ✅ ใช้ alias นี้
+use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
+use App\Http\Controllers\Admin\BookingController     as AdminBookingController;
+use App\Http\Controllers\Admin\FieldUnitController; 
+
+use App\Models\Announcement;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,71 +26,103 @@ use App\Models\Announcement;
 |--------------------------------------------------------------------------
 */
 
-// หน้า Home: แสดงประกาศล่าสุด 5 รายการ
+// Home: ประกาศล่าสุด
 Route::get('/', function () {
     $ann = Announcement::whereNotNull('published_at')
         ->orderByDesc('published_at')
         ->limit(5)
         ->get();
-
-    // ถ้ามี resources/views/welcome.blade.php ก็ส่งไปที่หน้านี้
     return view('welcome', ['announcements' => $ann]);
 })->name('home');
 
-// หน้า Field List (ผู้ใช้ทั่วไปเข้าดูได้ ถ้าต้องการให้ล็อกอินค่อยย้ายเข้า group ด้านล่าง)
+// รายการสนามใหญ่ (public)
 Route::get('/fields', [FieldPublicController::class, 'index'])->name('fields.index');
-
-// หน้า Field Detail + Calendar (ผู้ใช้ทั่วไปเข้าดูได้ ถ้าต้องการให้ล็อกอินค่อยย้ายเข้า group ด้านล่าง)
+// หน้าสนามใหญ่ + เลือกคอร์ต + ปฏิทิน
 Route::get('/fields/{field}', [FieldPublicController::class, 'show'])->name('fields.show');
 
-// JSON events สำหรับ FullCalendar ฝั่งผู้ใช้ (public หรือจะย้ายไปหลัง auth ก็ได้)
+// JSON: รายการคอร์ตของสนาม (ใช้ตอนหน้า Create Booking)
+Route::get('/api/fields/{field}/units', function (\App\Models\SportsField $field) {
+    return $field->units()->orderBy('index')->get(['id','name','status']);
+})->name('fields.units.list');
 
+// JSON: events เฉพาะคอร์ต
+Route::get('/api/fields/{field}/units/{unit}/events', [FieldPublicController::class, 'unitEvents'])
+    ->name('fields.units.events');
 
 
 /*
 |--------------------------------------------------------------------------
-| Authenticated routes (ต้องล็อกอิน + active + verified)
+| Authenticated routes
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'active', 'verified'])->group(function () {
 
     // Notifications
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications',            [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
-    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
-    Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
-    Route::get('/announcements', [AnnouncementPublicController::class, 'index'])
-    ->name('user.announcements.index');
-    Route::get('/announcements/{announcement}', [AnnouncementPublicController::class, 'show'])
-    ->name('user.announcements.show');
+    Route::post('/notifications/read-all',  [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
+    Route::get('/notifications/feed',       [NotificationController::class, 'feed'])->name('notifications.feed');
 
-    // USER routes
+    // Announcements (ผู้ใช้ดู)
+    Route::get('/announcements',                [AnnouncementPublicController::class, 'index'])->name('user.announcements.index');
+    Route::get('/announcements/{announcement}', [AnnouncementPublicController::class, 'show'])->name('user.announcements.show');
+
+    // USER
     Route::middleware('user')->group(function () {
-        Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
-        Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
-        Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+        Route::get('/bookings',         [BookingController::class, 'index'])->name('bookings.index');
+        Route::get('/bookings/create',  [BookingController::class, 'create'])->name('bookings.create');
+        Route::post('/bookings',        [BookingController::class, 'store'])->name('bookings.store');
         Route::delete('/bookings/{id}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+
+        // Account
+        Route::get('/account',          [AccountController::class, 'show'])->name('account.show');
+        Route::put('/account',          [AccountController::class, 'update'])->name('account.update');
+        Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password');
     });
 
-    // STAFF routes
+    // STAFF
     Route::prefix('staff')->name('staff.')->middleware('staff')->group(function () {
-        Route::get('/bookings', [StaffBookingController::class, 'index'])->name('bookings.index');
+        // คิวคำขอจอง
+        Route::get('/bookings',               [StaffBookingController::class, 'index'])->name('bookings.index');
         Route::post('/bookings/{id}/approve', [StaffBookingController::class, 'approve'])->name('bookings.approve');
-        Route::post('/bookings/{id}/reject', [StaffBookingController::class, 'reject'])->name('bookings.reject');
-        Route::get('/fields', [StaffFieldController::class, 'myFields'])->name('fields.index');
-        Route::post('/fields/{field}/close', [StaffFieldController::class, 'close'])->name('fields.close');
-        Route::post('/fields/{field}/open', [StaffFieldController::class, 'open'])->name('fields.open');
-        Route::get('/fields/schedule', [StaffFieldController::class, 'schedule'])->name('fields.schedule');
-        Route::get('/api/fields/{field}/events', [FieldPublicController::class, 'events'])->name('fields.events');
+        Route::post('/bookings/{id}/reject',  [StaffBookingController::class, 'reject'])->name('bookings.reject');
 
+        // สนามที่รับผิดชอบ + ปิด/เปิด
+        Route::get('/fields', [StaffFieldController::class, 'myFields'])->name('fields.index');
+
+        // ✅ ให้ตรงกับเมธอดที่เราสร้างไว้ (closeField/openField/closeUnit/openUnit)
+        Route::post('/fields/{field}/close',     [StaffFieldController::class, 'closeField'])->name('fields.close');
+        Route::post('/fields/{field}/open',      [StaffFieldController::class, 'openField'])->name('fields.open');
+        Route::post('/fields/{field}/units/{unit}/close', [StaffFieldController::class, 'closeUnit'])->name('units.close');
+        Route::post('/fields/{field}/units/{unit}/open',  [StaffFieldController::class, 'openUnit'])->name('units.open');
+
+        // (ถ้ายังใช้หน้า schedule เดิม)
+        Route::get('/fields/schedule', [StaffFieldController::class, 'schedule'])->name('fields.schedule');
     });
 
-    // ADMIN routes
+    // ADMIN
     Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+
+        // Dashboard + management หลัก
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::resource('/users', AdminUserController::class);
-        Route::resource('/fields', AdminFieldController::class);
+        Route::resource('/users',        AdminUserController::class);
         Route::resource('/announcements', AdminAnnouncementController::class);
+
+        // All bookings (ที่เราสร้างไว้)
+        Route::get('/bookings',                    [AdminBookingController::class, 'index'])->name('bookings.index');
+        Route::post('/bookings/{id}/status',       [AdminBookingController::class, 'updateStatus'])->name('bookings.updateStatus');
+
+        // Fields (สนามใหญ่)
+        Route::resource('/fields', AdminFieldController::class);
+
+        // Field Units (คอร์ต) — nested ใต้ field
+        Route::prefix('/fields/{field}')->group(function () {
+            Route::get   ('/units',              [FieldUnitController::class, 'index'])->name('fields.units.index');
+            Route::get   ('/units/create',       [FieldUnitController::class, 'create'])->name('fields.units.create');
+            Route::post  ('/units',              [FieldUnitController::class, 'store'])->name('fields.units.store');
+            Route::get   ('/units/{unit}/edit',  [FieldUnitController::class, 'edit'])->name('fields.units.edit');
+            Route::put   ('/units/{unit}',       [FieldUnitController::class, 'update'])->name('fields.units.update');
+            Route::delete('/units/{unit}',       [FieldUnitController::class, 'destroy'])->name('fields.units.destroy');
+        });
     });
 });
-
