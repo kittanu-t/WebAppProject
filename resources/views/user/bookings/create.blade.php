@@ -2,6 +2,43 @@
 @section('title','Create Booking')
 
 @section('content')
+
+<style>
+  #mini-calendar { min-height: 420px; }
+  .fc-booking-approved, .fc-booking-approved .fc-event-main { background: #4caf50 !important; border-color: #4caf50 !important; }
+  .fc-booking-pending,  .fc-booking-pending  .fc-event-main { background: #ff9800 !important; border-color: #ff9800 !important; }
+  .fc-closure { background: rgba(128,128,128,0.35) !important; }
+
+  /* === FORM STYLE === */
+  h1 { background:rgba(240, 180, 17, 0.88); color: #000; padding: 10px 15px; border-radius: 4px; }
+
+  input[type="text"], input[type="date"], input[type="time"], select, textarea {
+    padding: 6px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  button[type="submit"] {
+    background: #ffeb3b;
+    color: #000;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+  button[type="submit"]:hover {
+    background: #4caf50;
+    color: #fff;
+  }
+
+  /* === BORDER CLASSES === */
+  .input-filled { border: 2px solid #4caf50 !important; }
+  .input-empty { border: 2px solid #ffeb3b !important; }
+</style>
+
 <h1>Create Booking</h1>
 
 @if(session('status')) <div class="p-2 bg-green-100">{{ session('status') }}</div> @endif
@@ -88,16 +125,9 @@
   <button type="submit">Submit Booking</button>
 </form>
 
-{{-- โหลด FullCalendar จาก CDN เพื่อให้ขึ้นแน่นอน --}}
+{{-- FullCalendar --}}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-
-<style>
-  #mini-calendar { min-height: 420px; }
-  .fc-booking-approved, .fc-booking-approved .fc-event-main { background: #4caf50 !important; border-color: #4caf50 !important; }
-  .fc-booking-pending,  .fc-booking-pending  .fc-event-main { background: #ff9800 !important; border-color: #ff9800 !important; }
-  .fc-closure { background: rgba(128,128,128,0.35) !important; }
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -107,11 +137,33 @@ document.addEventListener('DOMContentLoaded', function () {
   const startInp = document.getElementById('start_time');
   const endInp   = document.getElementById('end_time');
 
+  // ✅ Update border via class
+  function updateBorders() {
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+      if (el.value && el.value.toString().trim() !== '') {
+        el.classList.add('input-filled');
+        el.classList.remove('input-empty');
+      } else {
+        el.classList.add('input-empty');
+        el.classList.remove('input-filled');
+      }
+    });
+  }
+
+  document.addEventListener('input', updateBorders);
+  document.addEventListener('change', updateBorders);
+
+  updateBorders();
+
   // โหลด units เมื่อเลือกสนาม
   fieldSel.addEventListener('change', () => {
     const fid = fieldSel.value;
     unitSel.innerHTML = '<option value="">-- Select Court --</option>';
-    if (!fid) { calendar.refetchEvents(); return; }
+    if (!fid) { 
+      calendar.refetchEvents(); 
+      updateBorders();
+      return; 
+    }
 
     fetch(`/api/fields/${fid}/units`)
       .then(r => r.json())
@@ -123,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
           unitSel.appendChild(opt);
         });
         calendar.refetchEvents();
+        updateBorders();
       });
   });
 
@@ -146,24 +199,27 @@ document.addEventListener('DOMContentLoaded', function () {
     eventClassNames: arg => arg.event.extendedProps.className || arg.event.classNames || [],
     selectable: true,
     select: (info) => {
-      // กรอกเวลาอัตโนมัติเมื่อผู้ใช้ลากเลือกช่องว่าง
       const pad = n => String(n).padStart(2,'0');
       const s = info.start, e = info.end;
       dateInp.value   = `${s.getFullYear()}-${pad(s.getMonth()+1)}-${pad(s.getDate())}`;
       startInp.value  = `${pad(s.getHours())}:${pad(s.getMinutes())}`;
       endInp.value    = `${pad(e.getHours())}:${pad(e.getMinutes())}`;
+      updateBorders();
     },
     selectOverlap: () => false
   });
   calendar.render();
 
-  // เปลี่ยนคอร์ต → โหลดอีเวนต์ใหม่
-  unitSel.addEventListener('change', () => calendar.refetchEvents());
+  unitSel.addEventListener('change', () => {
+    calendar.refetchEvents();
+    updateBorders();
+  });
 
-  // มี preselect field/unit มาแล้วจาก query → refetch ทันที
-  if (fieldSel.value && unitSel.value) calendar.refetchEvents();
+  if (fieldSel.value && unitSel.value) {
+    calendar.refetchEvents();
+    updateBorders();
+  }
 
-  // เปลี่ยน date → โกทูวันนั้น (ให้ผู้ใช้เห็นช่วงที่เลือก)
   dateInp.addEventListener('change', () => {
     if (dateInp.value) calendar.gotoDate(dateInp.value);
   });
