@@ -3,30 +3,31 @@
 @section('content')
 <h1>All Bookings</h1>
 
-@if(session('status')) <div class="p-2 bg-green-100">{{ session('status') }}</div> @endif
-@if($errors->any()) <div class="p-2 bg-red-100">{{ $errors->first() }}</div> @endif
+@if(session('status')) <div class="alert alert-info mb-4">{{ session('status') }}</div> @endif
+@if($errors->any()) <div class="alert alert-danger mb-4">{{ $errors->first() }}</div> @endif
 
-<form method="GET" class="mb-3" style="margin-bottom:12px; width: 100%;">
-  <input type="date" name="date_from" value="{{ request('date_from') }}" style="border: 1px solid #4A90E2; border-radius: 8px; margin-right: 5px;">
-  <input type="date" name="date_to" value="{{ request('date_to') }}" style="border: 1px solid #4A90E2; border-radius: 8px; margin-right: 5px;">
-  <select name="status" style="border: 1px solid #4A90E2; border-radius: 8px; margin-right: 5px;">
+{{-- Filter --}}
+<form method="GET" class="mb-2 d-flex align-items-center">
+  <input type="date" name="date_from" value="{{ request('date_from') }}" class="form-control" style="border: 1px solid #6C757D; border-radius: 8px; padding: 6px 12px; margin-right: 5px;">
+  <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control" style="border: 1px solid #6C757D; border-radius: 8px; padding: 6px 12px; margin-right: 5px;">
+  <select name="status" class="form-select" style="border: 1px solid #6C757D; border-radius: 8px; padding: 6px 12px; margin-right: 5px;">
     <option value="">-- status --</option>
     @foreach($statuses as $s)
       <option value="{{ $s }}" @selected(request('status')===$s)>{{ $s }}</option>
     @endforeach
   </select>
-  <select name="field_id" style="border: 1px solid #4A90E2; border-radius: 8px; margin-right: 5px;">
+  <select name="field_id" class="form-select" style="border: 1px solid #6C757D; border-radius: 8px; padding: 6px 12px; margin-right: 5px;">
     <option value="">-- field --</option>
     @foreach($fields as $f)
       <option value="{{ $f->id }}" @selected((string)request('field_id')===(string)$f->id)>{{ $f->name }}</option>
     @endforeach
   </select>
-  <input type="text" name="q" value="{{ request('q') }}" placeholder="user name/email" style="border: 1px solid #4A90E2; border-radius: 8px; margin-right: 5px;">
-  <button type="submit" style="background-color: #4A90E2; color: #FFFFFF; border: 1px solid #4A90E2; border-radius: 8px; padding: 5px 10px;">Filter</button>
-  <a href="{{ route('admin.bookings.index') }}" style="background-color: #4A90E2; color: #FFFFFF; border: 1px solid #4A90E2; border-radius: 8px; padding: 5px 10px; text-decoration: none;">Reset</a>
+  <input type="text" name="q" value="{{ request('q') }}" placeholder="user name/email" class="form-control" style="border: 1px solid #6C757D; border-radius: 8px; padding: 6px 12px; margin-right: 5px;">
+  <button type="submit" class="btn fw-bold" style="background-color: #FFB900; color: #212529; border: none; border-radius: 8px; padding: 6px 12px; margin-right: 5px;">Filter</button>
+  <a href="{{ route('admin.bookings.index') }}" class="btn fw-bold" style="background-color: #E54D42; color: #FFFFFF; border: none; border-radius: 8px; padding: 6px 12px; text-decoration: none;">Reset</a>
 </form>
 
-<table border="1" cellpadding="6" width="100%" style="border: 2px solid #4A90E2; border-radius: 12px; overflow: hidden;">
+<table border="1" cellpadding="6" width="100%" style="border: 1px solid #6C757D; border-radius: 8px;">
   <tr>
     <th>ID</th>
     <th>Field</th>
@@ -44,26 +45,27 @@
       <td>{{ $b->date }}</td>
       <td>{{ $b->start_time }} - {{ $b->end_time }}</td>
       <td><strong>{{ $b->status }}</strong></td>
-      <td>
-        <form method="POST" action="{{ route('admin.bookings.updateStatus',$b->id) }}" style="display:inline;">
+      <td class="d-flex gap-1">
+        {{-- ฟอร์มเปลี่ยนสถานะแบบรวดเร็ว --}}
+        <form method="POST" action="{{ route('admin.bookings.updateStatus', $b->id) }}" style="display:inline;">
           @csrf
           <input type="hidden" name="status" value="approved">
-          <button @disabled($b->status==='approved') style="background-color: #28A745; color: #FFFFFF; border: 2px solid #28A745; border-radius: 12px; padding: 2px 6px;">Approve</button>
+          <button @disabled($b->status==='approved') class="btn btn-sm fw-bold" style="background-color: #28A745; color: #FFFFFF; border: none; border-radius: 8px; padding: 4px 8px;">Approve</button>
         </form>
-        <form method="POST" action="{{ route('admin.bookings.updateStatus',$b->id) }}" style="display:inline;">
+        <form method="POST" action="{{ route('admin.bookings.updateStatus', $b->id) }}" style="display:inline;">
           @csrf
           <input type="hidden" name="status" value="rejected">
-          <button @disabled($b->status==='rejected') style="background-color: #DC3545; color: #FFFFFF; border: 2px solid #DC3545; border-radius: 12px; padding: 2px 6px;">Reject</button>
+          <button @disabled($b->status==='rejected') class="btn btn-sm fw-bold" style="background-color: #DC3545; color: #FFFFFF; border: none; border-radius: 8px; padding: 4px 8px;">Reject</button>
         </form>
-        <form method="POST" action="{{ route('admin.bookings.updateStatus',$b->id) }}" style="display:inline;">
+        <form method="POST" action="{{ route('admin.bookings.updateStatus', $b->id) }}" style="display:inline;">
           @csrf
           <input type="hidden" name="status" value="cancelled">
-          <button @disabled($b->status==='cancelled') style="background-color: #FFC107; color: #FFFFFF; border: 2px solid #FFC107; border-radius: 12px; padding: 2px 6px;">Cancel</button>
+          <button @disabled($b->status==='cancelled') class="btn btn-sm fw-bold" style="background-color: #FFC107; color: #FFFFFF; border: none; border-radius: 8px; padding: 4px 8px;">Cancel</button>
         </form>
-        <form method="POST" action="{{ route('admin.bookings.updateStatus',$b->id) }}" style="display:inline;">
+        <form method="POST" action="{{ route('admin.bookings.updateStatus', $b->id) }}" style="display:inline;">
           @csrf
           <input type="hidden" name="status" value="completed">
-          <button @disabled($b->status==='completed') style="background-color: #6C757D; color: #FFFFFF; border: 2px solid #6C757D; border-radius: 12px; padding: 2px 6px;">Complete</button>
+          <button @disabled($b->status==='completed') class="btn btn-sm fw-bold" style="background-color: #4A90E2; color: #FFFFFF; border: none; border-radius: 8px; padding: 4px 8px;">Complete</button>
         </form>
       </td>
     </tr>
