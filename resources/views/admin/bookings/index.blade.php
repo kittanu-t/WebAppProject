@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'All Bookings')
 @section('content')
-<h1>All Bookings</h1>
+<h1 style="margin-bottom: 15px; background-color: #FFB900; color: #212529; padding: 10px; border-radius: 8px;">All Bookings</h1>
 
 @if(session('status')) <div class="alert alert-info mb-4">{{ session('status') }}</div> @endif
 @if($errors->any()) <div class="alert alert-danger mb-4">{{ $errors->first() }}</div> @endif
