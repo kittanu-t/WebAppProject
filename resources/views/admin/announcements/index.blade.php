@@ -18,7 +18,7 @@
                         @endforeach
                     </select>
                     <button type="submit" class="btn fw-bold" style="background-color: #FFB900; color: #212529; border: none; border-radius: 8px;">Filter</button>
-                    <a href="{{ route('admin.announcements.create') }}" class="btn fw-bold" style="background-color: #FFB900; color: #212529; border: none; border-radius: 8px;">+ Create</a>
+                    <a href="{{ route('admin.announcements.create') }}" class="btn fw-bold" style="background-color: #FFB900; color: #212529; border: none; border-radius: 8px;">Create</a>
                 </form>
 
                 @if(session('status'))
@@ -55,7 +55,7 @@
                                 </td>
                             </tr>
                         @endforeach
-                    </tbody>
+                    </tbody>z
                 </table>
 
                 <!-- Pagination -->
