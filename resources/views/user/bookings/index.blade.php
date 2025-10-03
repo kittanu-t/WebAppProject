@@ -4,7 +4,7 @@
 @section('content')
 <style>
   .booking-header {
-    background-color: #FFD700;
+    background-color:rgb(255, 187, 0);
     color: black;
     font-weight: bold;
     padding: 15px 25px;
