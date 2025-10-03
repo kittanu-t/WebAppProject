@@ -1,11 +1,71 @@
-@extends('layouts.app')
+@extends('layouts.app') 
 @section('title','My Fields')
 
 @section('content')
+<style>
+  .card {
+    background: #fff;
+    padding: 16px;
+    margin-bottom: 18px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  h1 {
+    font-weight: bold;
+    margin-bottom: 18px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #fff;
+  }
+  th, td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+  th {
+    background: #f9d71c;
+    color: #222;
+  }
+  .btn {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-yellow {
+    background: #f9d71c;
+    color: #000;
+  }
+  .btn-red {
+    background: #e63946;
+    color: #fff;
+  }
+  .btn-gray {
+    background: #ddd;
+    color: #333;
+  }
+  .status-alert {
+    color: #b45309;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+</style>
+
 <h1>My Fields</h1>
 
-@if(session('status')) <div class="p-2 bg-green-100">{{ session('status') }}</div> @endif
-@if($errors->any())   <div class="p-2 bg-red-100">{{ $errors->first() }}</div>   @endif
+@if(session('status')) 
+  <div class="p-2 bg-green-100">{{ session('status') }}</div> 
+@endif
+@if($errors->any())   
+  <div class="p-2 bg-red-100">{{ $errors->first() }}</div>   
+@endif
 
 @forelse($fields as $f)
   @php
@@ -13,33 +73,33 @@
     $fieldActive = ($activeClosures[$fieldKey] ?? collect())->first();
   @endphp
 
-  <div style="border:1px solid #ddd; padding:12px; margin-bottom:14px;">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
       <div>
         <strong>{{ $f->name }}</strong> ({{ $f->sport_type }})
         <div>Location: {{ $f->location }}</div>
         <div>Status: <strong>{{ $f->status }}</strong></div>
         @if($fieldActive)
-          <div style="color:#b45309">
-            ปิดทั้งสนาม: {{ $fieldActive->first()->reason ?? '-' }}
-            <br>ช่วง: {{ $fieldActive->first()->start_datetime }} - {{ $fieldActive->first()->end_datetime }}
+          <div class="status-alert">
+            ปิดทั้งสนาม: {{ $fieldActive->first()->reason ?? '-' }} <br>
+            ช่วง: {{ $fieldActive->first()->start_datetime }} - {{ $fieldActive->first()->end_datetime }}
           </div>
         @endif
       </div>
       <div>
-        <a href="{{ route('fields.show', $f->id) }}">ดูปฏิทินสนามนี้</a>
+        <a href="{{ route('fields.show', $f->id) }}" class="btn btn-gray">ดูปฏิทินสนามนี้</a>
       </div>
     </div>
 
     {{-- ปุ่มปิด/เปิด "ทั้งสนาม" --}}
-    <div style="margin-top:8px;">
+    <div style="margin-top:10px;">
       @if($f->status !== 'available')
         <form method="POST" action="{{ route('staff.fields.open', $f->id) }}" style="display:inline;">
           @csrf
-          <button type="submit">เปิดสนาม (ทั้งก้อน)</button>
+          <button type="submit" class="btn btn-yellow">เปิดสนาม (ทั้งก้อน)</button>
         </form>
       @else
-        <form method="POST" action="{{ route('staff.fields.close', $f->id) }}" style="display:block; margin-top:6px;">
+        <form method="POST" action="{{ route('staff.fields.close', $f->id) }}" style="margin-top:8px;">
           @csrf
           <div>
             <label>เหตุผลปิดทั้งสนาม</label>
@@ -56,19 +116,19 @@
             <label>สิ้นสุดการปิด (เว้นว่าง = ปิดจนกว่าจะเปิดเอง)</label>
             <input type="datetime-local" name="end_datetime">
           </div>
-          <button type="submit" style="margin-top:6px;">ปิดทั้งสนาม + ประกาศ</button>
+          <button type="submit" class="btn btn-red" style="margin-top:8px;">ปิดทั้งสนาม + ประกาศ</button>
         </form>
       @endif
     </div>
 
     {{-- ตารางคอร์ตทั้งหมด --}}
-    <div style="margin-top:10px;">
+    <div style="margin-top:12px;">
       <h4>Units / Courts</h4>
-      <table border="1" cellpadding="6" width="100%">
+      <table>
         <tr>
-          <th style="text-align:left;">ชื่อคอร์ต</th>
-          <th style="text-align:left;">สถานะ</th>
-          <th style="text-align:left;">การทำงาน</th>
+          <th>ชื่อคอร์ต</th>
+          <th>สถานะ</th>
+          <th>การทำงาน</th>
         </tr>
         @forelse($f->units as $u)
           @php
@@ -80,31 +140,32 @@
             <td>
               <strong>{{ $u->status }}</strong>
               @if($uActive)
-                <div style="color:#b45309; font-size:12px;">
-                  ปิดชั่วคราว: {{ $uActive->first()->reason ?? '-' }}
-                  <br>ช่วง: {{ $uActive->first()->start_datetime }} - {{ $uActive->first()->end_datetime }}
+                <div class="status-alert">
+                  ปิดชั่วคราว: {{ $uActive->first()->reason ?? '-' }} <br>
+                  ช่วง: {{ $uActive->first()->start_datetime }} - {{ $uActive->first()->end_datetime }}
                 </div>
               @endif
             </td>
             <td>
               @if($u->status !== 'available')
                 <form method="POST" action="{{ route('staff.units.open', [$f->id, $u->id]) }}" style="display:inline;">
-                  @csrf <button type="submit">เปิดคอร์ต</button>
+                  @csrf 
+                  <button type="submit" class="btn btn-yellow">เปิดคอร์ต</button>
                 </form>
               @else
                 <form method="POST" action="{{ route('staff.units.close', [$f->id, $u->id]) }}" style="display:inline;">
                   @csrf
-                  <input type="text" name="reason" required placeholder="เหตุผล" style="width:180px;">
+                  <input type="text" name="reason" required placeholder="เหตุผล" style="width:160px;">
                   <select name="status">
                     <option value="closed">closed</option>
                     <option value="maintenance">maintenance</option>
                   </select>
                   <input type="datetime-local" name="end_datetime">
-                  <button type="submit">ปิดคอร์ต + ประกาศ</button>
+                  <button type="submit" class="btn btn-red">ปิดคอร์ต + ประกาศ</button>
                 </form>
               @endif
 
-              <a href="{{ route('fields.show', $f->id) }}" style="margin-left:8px;">ดูปฏิทิน</a>
+              <a href="{{ route('fields.show', $f->id) }}" class="btn btn-gray" style="margin-left:6px;">ดูปฏิทิน</a>
             </td>
           </tr>
         @empty
