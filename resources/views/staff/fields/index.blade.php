@@ -116,7 +116,7 @@
             <label>สิ้นสุดการปิด (เว้นว่าง = ปิดจนกว่าจะเปิดเอง)</label>
             <input type="datetime-local" name="end_datetime">
           </div>
-          <button type="submit" class="btn btn-red" style="margin-top:8px;">ปิดทั้งสนาม + ประกาศ</button>
+          <button type="submit" class="btn btn-red" style="margin-top:8px;">ปิดทั้งสนาม และ ประกาศ</button>
         </form>
       @endif
     </div>
@@ -161,7 +161,7 @@
                     <option value="maintenance">maintenance</option>
                   </select>
                   <input type="datetime-local" name="end_datetime">
-                  <button type="submit" class="btn btn-red">ปิดคอร์ต + ประกาศ</button>
+                  <button type="submit" class="btn btn-red">ปิดคอร์ต และ ประกาศ</button>
                 </form>
               @endif
 
