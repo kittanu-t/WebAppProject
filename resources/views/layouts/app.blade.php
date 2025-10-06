@@ -52,31 +52,55 @@
         .navbar{ background:#fff; border-bottom:1px solid #E9ECEF; }
         .navbar .nav-link{ color:var(--txt-main); }
         .navbar .nav-link:hover{ color:#000; }
+        .navbar .nav-link.active{
+            color:#000;
+            position:relative;
+            font-weight:600;
+        }
+        .navbar .nav-link.active::after{
+            content:"";
+            position:absolute; left:0; right:0; bottom:-6px; height:3px;
+            background:var(--act-red); border-radius:3px;
+        }
+
         .btn-primary{
             background:var(--act-red) !important;
             border-color:var(--act-red) !important;
         }
-        .btn-primary:hover{
-            filter:brightness(0.95);
+        .btn-primary:hover{ filter:brightness(0.95); }
+
+        /* ปุ่ม Logout = แดงตามธีม */
+        .btn-logout{
+            background:var(--act-red) !important;
+            border-color:var(--act-red) !important;
+            color:#fff !important;
         }
-        .badge-accent{
-            background:var(--accent-yellow);
-            color:var(--txt-main);
-        }
+        .btn-logout:hover{ filter:brightness(0.95); }
+
+        .badge-accent{ background:var(--accent-yellow); color:var(--txt-main); }
         .text-secondary{ color:var(--txt-secondary) !important; }
         .shadow-soft{ box-shadow:0 4px 14px rgba(33,37,41,.06); }
         .alert-border{ border-left:4px solid var(--act-red); }
-        main{ min-height: calc(100vh - 72px); } /* กันหน้าเตี้ยเกิน */
+        main{ min-height: calc(100vh - 72px); }
+
         /* กระดิ่งแจ้งเตือน */
-        .bell-btn{ position:relative; background:#fff; border:1px solid #E9ECEF; }
+        .bell-btn{
+            position:relative; background:#fff; border:1px solid #E9ECEF;
+            transition:transform .15s ease, box-shadow .15s ease;
+        }
+        .bell-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.06); }
         .bell-badge{
             position:absolute; top:-6px; right:-6px; min-width:18px; height:18px;
             font-size:11px; border-radius:999px; background:#dc3545; color:#fff;
             display:flex; align-items:center; justify-content:center; padding:0 4px;
         }
-        /* Dropdown แจ้งเตือน */
         .notif-panel{
             width:22rem; background:#fff; border:1px solid #E9ECEF; border-radius:.5rem;
+        }
+
+        /* แบนด์ไม่ให้คลิก (ใช้เมื่อเป็น Staff/Admin – ใส่ด้วย JS ฝั่งหน้า) */
+        .brand-disabled{
+            pointer-events:none; cursor:default; opacity:.8;
         }
     </style>
 </head>
@@ -86,7 +110,7 @@
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
         <!-- Brand -->
-        <a class="navbar-brand fw-semibold" href="{{ route('home') }}" style="color:var(--txt-main)">
+        <a id="brandLink" class="navbar-brand fw-semibold" href="{{ route('home') }}" style="color:var(--txt-main)">
             SportsBooking
         </a>
 
@@ -133,17 +157,19 @@
                 @auth
                     <li class="nav-item me-2">
                         <span class="nav-link disabled text-secondary">
-                            Hi, {{ auth()->user()->name }} ({{ auth()->user()->role }})
+                            Hi, {{ auth()->user()->name }}
                         </span>
                     </li>
 
                     {{-- 🔔 กระดิ่งแจ้งเตือน (Alpine) --}}
                     <li class="nav-item dropdown me-2" x-data="notificationBell()" x-cloak x-init="init()">
-                        <button class="btn bell-btn rounded-pill px-3 py-1" data-bs-toggle="dropdown" aria-expanded="false" @click="open = !open">
+                        <button id="bellButton" class="btn bell-btn rounded-pill px-3 py-1"
+                                data-bs-toggle="dropdown" aria-expanded="false" @click="open = !open">
                             <span class="me-1">🔔</span>
                             <span class="bell-badge" x-show="unread > 0" x-text="unread"></span>
                         </button>
-                        <div class="dropdown-menu dropdown-menu-end p-2 notif-panel shadow-soft" x-show="open" @click.outside="open = false">
+                        <div class="dropdown-menu dropdown-menu-end p-2 notif-panel shadow-soft"
+                             x-show="open" @click.outside="open = false">
                             <div class="d-flex justify-content-between align-items-center mb-2 px-1">
                                 <strong>Notifications</strong>
                                 <form method="POST" action="{{ route('notifications.readAll') }}">
@@ -184,11 +210,11 @@
                         </li>
                     @endif
 
-                    {{-- ปุ่ม Logout --}}
+                    {{-- ปุ่ม Logout = สีแดงตามธีม --}}
                     <li class="nav-item">
                         <form class="d-inline" method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="btn btn-outline-secondary">Logout</button>
+                            <button type="submit" class="btn btn-logout">Logout</button>
                         </form>
                     </li>
                 @endauth
@@ -272,6 +298,36 @@ if (typeof window.Alpine === 'undefined') {
     s.defer = true;
     document.head.appendChild(s);
 }
+</script>
+
+<!-- JS ฝั่งหน้า: 1) ปิดคลิก Brand เมื่อเป็น Staff/Admin  2) ไฮไลท์เมนูปัจจุบัน -->
+<script>
+(function(){
+    // 1) ถ้าพบเมนูของ staff หรือ admin ใน navbar ให้ "ปิดคลิก" แบรนด์
+    const hasStaff = document.querySelector('a.nav-link[href*="/staff"]');
+    const hasAdmin = document.querySelector('a.nav-link[href*="/admin"]');
+    const brand = document.getElementById('brandLink');
+    if ((hasStaff || hasAdmin) && brand){
+        brand.classList.add('brand-disabled');
+        brand.setAttribute('aria-disabled','true');
+        brand.addEventListener('click', function(e){ e.preventDefault(); }, {passive:false});
+        // สื่อสารสถานะให้ผู้ใช้เล็กน้อย
+        brand.title = 'คุณกำลังอยู่ในโหมด Staff/Admin';
+    }
+
+    // 2) ไฮไลท์ลิงก์ปัจจุบัน (แบบไม่แตะ Blade logic)
+    const current = window.location.pathname.replace(/\/+$/,''); // ตัด / ท้าย
+    document.querySelectorAll('.navbar .nav-link').forEach(a=>{
+        try{
+            const aPath = new URL(a.href, window.location.origin).pathname.replace(/\/+$/,'');
+            // ตรงเป๊ะ หรือเป็นหน้าหลักของหมวด (เริ่มต้นด้วย path และยาวกว่า)
+            if (aPath && (aPath === current || (current.startsWith(aPath) && aPath !== '/'))){
+                a.classList.add('active');
+                a.setAttribute('aria-current','page');
+            }
+        }catch(_e){}
+    });
+})();
 </script>
 </body>
 </html>

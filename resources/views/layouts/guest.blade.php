@@ -15,76 +15,56 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Scripts -->
+    <!-- Vite (คงไว้ตามเดิม) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Custom Style -->
+    <!-- THEME: สีและองค์ประกอบตาม Style Guide -->
     <style>
         :root{
-            --bg-foundation:#F4F6F8;
-            --txt-main:#212529;
-            --txt-secondary:#6C757D;
-            --act-red:#E54D42;
-            --accent-yellow:#FFB900;
+            --bg-foundation:#F4F6F8; /* พื้นหลังหลัก */
+            --txt-main:#212529;      /* ข้อความหลัก */
+            --txt-secondary:#6C757D; /* ข้อความรอง */
+            --act-red:#E54D42;       /* ปุ่มหลัก/CTA */
+            --accent-yellow:#FFB900; /* badge/ลิงก์เน้น */
         }
+        html,body{ height:100%; }
         body{
             background:var(--bg-foundation);
+            color:var(--txt-main);
             font-family:'Figtree',sans-serif;
         }
+        /* ปุ่มหลักใช้แดงตามไกด์ */
+        .btn-primary{
+            background:var(--act-red) !important;
+            border-color:var(--act-red) !important;
+        }
+        .btn-primary:hover{ filter:brightness(0.95); }
+
+        /* Card / Shadow มาตรฐาน */
+        .shadow-soft{ box-shadow:0 6px 20px rgba(33,37,41,.08); }
+
+        /* ยูทิลิตี้สำหรับหน้า auth ที่ยังอยากจัดกลางแบบเก่า (ถ้าหน้าไหนต้องการ) */
+        .auth-center{
+            min-height:100vh;
+            display:flex; align-items:center; justify-content:center;
+        }
         .auth-card{
-            max-width:420px;
-            margin:auto;
-            background:#fff;
-            border:1px solid #E9ECEF;
-            border-radius:.75rem;
+            max-width:420px; width:100%;
+            background:#fff; border:1px solid #E9ECEF; border-radius:.75rem;
             padding:2rem;
-            box-shadow:0 6px 20px rgba(33,37,41,.08);
         }
-        .auth-title{
-            font-weight:600;
-            color:var(--txt-main);
-            margin-bottom:1rem;
-            text-align:center;
-        }
-        .form-label{
-            font-weight:500;
-            color:var(--txt-main);
-        }
-        .form-control{
-            border-radius:.5rem;
-            padding:.75rem 1rem;
-        }
-        .btn-auth{
-            background:var(--act-red);
-            border-color:var(--act-red);
-            border-radius:.5rem;
-            padding:.75rem;
-            font-weight:600;
-        }
-        .btn-auth:hover{
-            filter:brightness(0.95);
-        }
-        .link-accent{
-            color:var(--accent-yellow);
-            font-weight:500;
-            text-decoration:none;
-        }
-        .link-accent:hover{
-            text-decoration:underline;
-        }
+
+        /* ฟอร์มสัมผัสนุ่มขึ้นเล็กน้อย */
+        .form-control{ border-radius:.5rem; padding:.75rem 1rem; }
+        .form-label{ font-weight:500; }
+        .text-secondary{ color:var(--txt-secondary) !important; }
+        .badge-accent{ background:var(--accent-yellow); color:var(--txt-main); }
     </style>
 </head>
 <body>
-    <div class="d-flex align-items-center justify-content-center min-vh-100">
-        <div class="auth-card">
-            {{-- content จาก Blade component --}}
-            <div class="auth-title">
-                @yield('auth-title','Welcome')
-            </div>
-            <div>
-                {{ $slot }}
-            </div>
-        </div>
-    </div>
+
+    {{-- ปล่อยให้หน้าลูกเป็นคนควบคุมเลย์เอาต์เอง (รองรับ 40:60 ของหน้า login ใหม่) --}}
+    {{ $slot }}
+
 </body>
 </html>
