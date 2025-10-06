@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- HERO บนสุด -->
-<section class="py-5" style="background:#F4F6F8;">
+<section class="py-5 rounded-5" style="background:#F4F6F8;">
   <div class="container">
     <div class="p-4 p-md-5 bg-white border rounded-4 shadow-sm">
       <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">

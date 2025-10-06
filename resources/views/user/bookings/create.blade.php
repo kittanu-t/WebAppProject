@@ -1,129 +1,169 @@
 @extends('layouts.app')
 @section('title','Create Booking')
 
-@section('content')
-
+@section('styles')
 <style>
-  #mini-calendar { min-height: 420px; }
-  .fc-booking-approved, .fc-booking-approved .fc-event-main { background: #4caf50 !important; border-color: #4caf50 !important; }
-  .fc-booking-pending,  .fc-booking-pending  .fc-event-main { background: #ff9800 !important; border-color: #ff9800 !important; }
-  .fc-closure { background: rgba(128,128,128,0.35) !important; }
-
-  /* === FORM STYLE === */
-  h1 { background:rgba(240, 180, 17, 0.88); color: #000; padding: 10px 15px; border-radius: 4px; }
-
-  input[type="text"], input[type="date"], input[type="time"], select, textarea {
-    padding: 6px;
-    border-radius: 4px;
-    outline: none;
-    transition: border-color 0.2s;
+  :root{
+    --bg-foundation:#F4F6F8;
+    --txt-main:#212529;
+    --txt-secondary:#6C757D;
+    --act-red:#E54D42;
+    --accent-yellow:#FFB900;
   }
-
-  button[type="submit"] {
-    background: #ffeb3b;
-    color: #000;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.2s;
-  }
-  button[type="submit"]:hover {
-    background: #4caf50;
-    color: #fff;
-  }
-
-  /* === BORDER CLASSES === */
-  .input-filled { border: 2px solid #4caf50 !important; }
-  .input-empty { border: 2px solid #ffeb3b !important; }
+  .card-soft{ border:1px solid #E9ECEF; border-radius:.75rem; box-shadow:0 4px 14px rgba(33,37,41,.06); }
+  .section-title{ color:var(--txt-main); }
+  .text-secondary{ color:var(--txt-secondary)!important; }
+  .btn-primary{ background:var(--act-red)!important; border-color:var(--act-red)!important; }
+  .btn-primary:hover{ filter:brightness(0.95); }
+  .form-control, .form-select{ border-radius:.5rem; padding:.7rem 1rem; }
+  .form-label{ font-weight:500; color:var(--txt-main); }
+  .legend-dot{ display:inline-block; width:.75rem; height:.75rem; border-radius:999px; margin-right:.4rem; vertical-align:middle; }
 </style>
+@endsection
 
-<h1>Create Booking</h1>
-
-@if(session('status')) <div class="p-2 bg-green-100">{{ session('status') }}</div> @endif
-@if($errors->any())
-  <div class="p-2 bg-red-100">
-    <ul class="list-disc ml-5">
-      @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
-    </ul>
-  </div>
-@endif
-
-<form method="POST" action="{{ route('bookings.store') }}" id="booking-form">
-  @csrf
-
-  {{-- เลือกสนาม --}}
-  <div class="mb-3">
-    <label for="sports_field_id">Field</label>
-    <select id="sports_field_id" name="sports_field_id" required>
-      <option value="">-- Select Field --</option>
-      @foreach($fields as $f)
-        <option value="{{ $f->id }}" @selected(old('sports_field_id',$prefield)==$f->id)>
-          {{ $f->name }} ({{ $f->sport_type }})
-        </option>
-      @endforeach
-    </select>
-    @error('sports_field_id')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+@section('content')
+<div class="container">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h4 fw-semibold section-title mb-0">Create Booking</h1>
   </div>
 
-  {{-- เลือกคอร์ต --}}
-  <div class="mb-3">
-    <label for="field_unit_id">Court</label>
-    <select id="field_unit_id" name="field_unit_id" required>
-      <option value="">-- Select Court --</option>
-      @if($prefield)
-        @foreach(($fields->firstWhere('id',$prefield)?->units ?? []) as $u)
-          <option value="{{ $u->id }}" @selected(old('field_unit_id',$preunit)==$u->id)>
-            {{ $u->name }} ({{ $u->status }})
-          </option>
-        @endforeach
-      @endif
-    </select>
-    @error('field_unit_id')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </div>
+  {{-- Flash / Errors --}}
+  @if(session('status'))
+    <div class="alert alert-success border-0 shadow-sm">{{ session('status') }}</div>
+  @endif
 
-  {{-- ปฏิทินย่อ --}}
-  <div class="mb-3">
-    <label>Availability</label>
-    <div id="mini-calendar" style="max-width: 1000px; border:1px solid #ddd; padding:8px;"></div>
-    <small>
-      • สีเทาพื้น = ปิดสนาม/คอร์ต • สีเขียว = Approved • สีส้ม = Pending<br>
-      • คลิก/ลากช่วงเวลาว่างเพื่อเติมเวลาในฟอร์มอัตโนมัติ
-    </small>
-  </div>
-
-  <div class="grid" style="grid-template-columns: repeat(2,minmax(0,240px)); gap:12px;">
-    <div>
-      <label for="date">Date</label>
-      <input id="date" type="date" name="date" value="{{ old('date') }}" required>
-      @error('date')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+  @if($errors->any())
+    <div class="alert alert-danger border-0 shadow-sm">
+      <ul class="mb-0 ps-3">
+        @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+      </ul>
     </div>
-    <div>
-      <label for="start_time">Start</label>
-      <input id="start_time" type="time" name="start_time" value="{{ old('start_time') }}" required>
-      @error('start_time')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+  @endif
+
+  <div class="row g-4">
+    {{-- ซ้าย: ฟอร์ม --}}
+    <div class="col-12 col-lg-6">
+      <div class="card card-soft">
+        <div class="card-body p-4">
+          @php
+            $prefield = request('field_id') ?? $prefield ?? null;
+            $prefield_name = request('field_name');
+          @endphp
+
+          <form method="POST" action="{{ route('bookings.store') }}" id="booking-form">
+            @csrf
+
+            {{-- เลือกสนาม --}}
+            <div class="mb-3">
+              <label for="sports_field_id" class="form-label">Field</label>
+              <select id="sports_field_id" name="sports_field_id" class="form-select" required>
+                <option value="">-- Select Field --</option>
+                @foreach($fields as $f)
+                  <option value="{{ $f->id }}" 
+                    @selected(old('sports_field_id', $prefield)==$f->id)>
+                    {{ $f->name }} ({{ $f->sport_type }})
+                  </option>
+                @endforeach
+              </select>
+
+              @error('sports_field_id')
+                <div class="small text-danger mt-1">{{ $message }}</div>
+              @enderror
+            </div>
+
+            {{-- เลือกคอร์ต --}}
+            <div class="mb-3">
+              <label for="field_unit_id" class="form-label">Court</label>
+              <select id="field_unit_id" name="field_unit_id" class="form-select" required>
+                <option value="">-- Select Court --</option>
+                @if($prefield)
+                  @foreach(($fields->firstWhere('id',$prefield)?->units ?? []) as $u)
+                    <option value="{{ $u->id }}" @selected(old('field_unit_id',$preunit)==$u->id)>
+                      {{ $u->name }} ({{ $u->status }})
+                    </option>
+                  @endforeach
+                @endif
+              </select>
+              @error('field_unit_id')<div class="small text-danger mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            {{-- วันที่/เวลา/ติดต่อ --}}
+            <div class="row g-3">
+              <div class="col-12 col-sm-6">
+                <label for="date" class="form-label">Date</label>
+                <input id="date" type="date" name="date" value="{{ old('date') }}" class="form-control" required>
+                @error('date')<div class="small text-danger mt-1">{{ $message }}</div>@enderror
+              </div>
+              <div class="col-6 col-sm-3">
+                <label for="start_time" class="form-label">Start</label>
+                <input id="start_time" type="time" name="start_time" value="{{ old('start_time') }}" class="form-control" required>
+                @error('start_time')<div class="small text-danger mt-1">{{ $message }}</div>@enderror
+              </div>
+              <div class="col-6 col-sm-3">
+                <label for="end_time" class="form-label">End</label>
+                <input id="end_time" type="time" name="end_time" value="{{ old('end_time') }}" class="form-control" required>
+                @error('end_time')<div class="small text-danger mt-1">{{ $message }}</div>@enderror
+              </div>
+              <div class="col-12">
+                <label for="contact_phone" class="form-label">Contact Phone</label>
+                <input id="contact_phone" type="text" name="contact_phone" value="{{ old('contact_phone') }}" class="form-control" placeholder="เช่น 08x-xxx-xxxx">
+                @error('contact_phone')<div class="small text-danger mt-1">{{ $message }}</div>@enderror
+              </div>
+            </div>
+
+            {{-- วัตถุประสงค์ --}}
+            <div class="mb-3 mt-3">
+              <label for="purpose" class="form-label">Purpose</label>
+              <textarea id="purpose" name="purpose" rows="3" class="form-control" placeholder="ระบุวัตถุประสงค์การใช้งาน (ถ้ามี)">{{ old('purpose') }}</textarea>
+              @error('purpose')<div class="small text-danger mt-1">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="d-flex gap-2 mt-2">
+              <button type="submit" class="btn btn-primary px-4">Submit Booking</button>
+              <a href="{{ url()->previous() }}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </form>
+
+        </div>
+      </div>
     </div>
-    <div>
-      <label for="end_time">End</label>
-      <input id="end_time" type="time" name="end_time" value="{{ old('end_time') }}" required>
-      @error('end_time')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-    </div>
-    <div>
-      <label for="contact_phone">Contact Phone</label>
-      <input id="contact_phone" type="text" name="contact_phone" value="{{ old('contact_phone') }}">
-      @error('contact_phone')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+
+    {{-- ขวา: ปฏิทิน & legend --}}
+    <div class="col-12 col-lg-6">
+      <div class="card card-soft mb-3">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h6 fw-semibold section-title mb-0">Availability</h2>
+            <div class="small text-secondary">คลิก/ลากช่วงเวลาว่างเพื่อกรอกลงแบบฟอร์ม</div>
+          </div>
+
+          <div id="mini-calendar"></div>
+
+          <div class="mt-3 small text-secondary">
+            <span class="legend-dot" style="background:#E9ECEF;"></span> ปิดสนาม/คอร์ต
+            <span class="ms-3 legend-dot" style="background:#28a745;"></span> Approved
+            <span class="ms-3 legend-dot" style="background:#fd7e14;"></span> Pending
+          </div>
+        </div>
+      </div>
+
+      {{-- Tips --}}
+      <div class="card card-soft">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center mb-2">
+            <div class="rounded-circle me-2" style="width:10px;height:10px;background:#FFB900;"></div>
+            <span class="fw-semibold" style="color:var(--txt-main);">Quick Tips</span>
+          </div>
+          <ul class="mb-0 small text-secondary ps-3">
+            <li>เลือก Field ก่อน เพื่อโหลด Court และตารางเวลา</li>
+            <li>ลากช่วงเวลาที่ว่างบนปฏิทิน ระบบจะเติม Date/Start/End อัตโนมัติ</li>
+            <li>ช่วงเวลาจองแนะนำ ≥ 1 ชั่วโมง เพื่อหลีกเลี่ยงการชนกับคิวถัดไป</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
-
-  <div class="mb-3" style="margin-top:12px;">
-    <label for="purpose">Purpose (optional)</label>
-    <textarea id="purpose" name="purpose" rows="3">{{ old('purpose') }}</textarea>
-    @error('purpose')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </div>
-
-  <button type="submit">Submit Booking</button>
-</form>
+</div>
 
 {{-- FullCalendar --}}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
@@ -137,22 +177,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const startInp = document.getElementById('start_time');
   const endInp   = document.getElementById('end_time');
 
-  // ✅ Update border via class
+  // ✅ เคลียร์ class เดิม (เราไม่มี CSS ชื่อเหล่านี้แล้ว แต่คง logic ไว้)
   function updateBorders() {
     document.querySelectorAll('input, select, textarea').forEach(el => {
-      if (el.value && el.value.toString().trim() !== '') {
-        el.classList.add('input-filled');
-        el.classList.remove('input-empty');
-      } else {
-        el.classList.add('input-empty');
-        el.classList.remove('input-filled');
-      }
+      el.classList.remove('input-filled', 'input-empty');
     });
   }
-
   document.addEventListener('input', updateBorders);
   document.addEventListener('change', updateBorders);
-
   updateBorders();
 
   // โหลด units เมื่อเลือกสนาม
@@ -164,7 +196,6 @@ document.addEventListener('DOMContentLoaded', function () {
       updateBorders();
       return; 
     }
-
     fetch(`/api/fields/${fid}/units`)
       .then(r => r.json())
       .then(units => {
@@ -196,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
       fetch(url, { credentials: 'same-origin' })
         .then(r => r.json()).then(success).catch(failure);
     },
-    eventClassNames: arg => arg.event.extendedProps.className || arg.event.classNames || [],
+    eventClassNames: arg => [],  // คงตามที่คุณลบ CSS ภายใน
     selectable: true,
     select: (info) => {
       const pad = n => String(n).padStart(2,'0');

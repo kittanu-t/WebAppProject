@@ -17,7 +17,7 @@
     <!-- Bootstrap 5.3 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
+    @yield('styles')
     <!-- FullCalendar v6 CSS via CDN -->
     <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.19/main.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.19/main.min.css" rel="stylesheet">
@@ -32,24 +32,7 @@
             --act-red:#E54D42;
             --accent-yellow:#FFB900;
         }
-            body {
-                position: relative;
-                color: var(--txt-main);
-                min-height: 100vh;
-                z-index: 0;
-            }
-
-            body::before {
-                content: '';
-                position: fixed;
-                top: 0; left: 0;
-                width: 100%; height: 100%;
-                background: url('/image/8fbb7261bd4193ad9e7166f753af212c.jpg') no-repeat center center fixed;
-                background-size: cover;
-                opacity: 0.2;
-                z-index: -1;
-            }
-        .navbar{ background:#fff; border-bottom:1px solid #E9ECEF; }
+        .navbar{ background:#fff; border-bottom:1px solid #E9ECEF; height: 75px;}
         .navbar .nav-link{ color:var(--txt-main); }
         .navbar .nav-link:hover{ color:#000; }
         .navbar .nav-link.active{
@@ -100,18 +83,22 @@
 
         /* แบนด์ไม่ให้คลิก (ใช้เมื่อเป็น Staff/Admin – ใส่ด้วย JS ฝั่งหน้า) */
         .brand-disabled{
-            pointer-events:none; cursor:default; opacity:.8;
+            pointer-events:none; cursor:default; 
         }
     </style>
 </head>
 <body class="antialiased">
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg sticky-top">
+<nav class="navbar navbar-expand-lg sticky-top navbar-light shadow-sm">
     <div class="container">
-        <!-- Brand -->
-        <a id="brandLink" class="navbar-brand fw-semibold" href="{{ route('home') }}" style="color:var(--txt-main)">
-            SportsBooking
+
+        <!-- Brand (ปิดคลิกทุกบทบาท) -->
+        <a id="brandLink"
+           class="navbar-brand fw-semibold d-flex align-items-center brand-disabled"
+           href="{{ route('home') }}" aria-disabled="true" tabindex="-1" style="color:var(--txt-main)">
+            <img src="{{ asset('images\logo_png.png') }}" alt="Khon Kaen Sport Hub Logo" style="height: 30px; width: auto;" class="me-2">
+            <span>Khon Kaen Sport Hub</span>
         </a>
 
         <!-- Toggler -->
@@ -123,6 +110,7 @@
         <div id="topNav" class="collapse navbar-collapse">
             <!-- เมนูซ้าย -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
                 {{-- เมนูสำหรับ Guest --}}
                 @guest
                     <li class="nav-item"><a class="nav-link" href="{{ route('fields.index') }}">Fields</a></li>
@@ -131,6 +119,9 @@
                 {{-- เมนูสำหรับผู้ใช้ที่ล็อกอินแล้ว --}}
                 @auth
                     @if(auth()->user()->role === 'user')
+                        <!-- NEW: Home (เฉพาะ User เท่านั้น) -->
+                        <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Home</a></li>
+
                         <li class="nav-item"><a class="nav-link" href="{{ route('bookings.index') }}">My Bookings</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('fields.index') }}">Fields</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.announcements.index') }}">Announcements</a></li>
@@ -204,9 +195,7 @@
                     {{-- Account (เฉพาะ role=user) ชิดขวา --}}
                     @if(auth()->user()->role === 'user')
                         <li class="nav-item me-2">
-                            <a href="{{ route('account.show') }}" class="btn btn-light border">
-                                Account
-                            </a>
+                            <a href="{{ route('account.show') }}" class="btn btn-light border">Account</a>
                         </li>
                     @endif
 
@@ -221,10 +210,10 @@
 
                 @guest
                     <li class="nav-item me-2">
-                        <a class="btn btn-outline-secondary" href="{{ route('login') }}">Login</a>
+                        <a class="btn" href="{{ route('login') }}">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary" href="{{ route('register') }}">Register</a>
+                        <a class="btn btn-outline-secondary" href="{{ route('register') }}">Register</a>
                     </li>
                 @endguest
             </ul>

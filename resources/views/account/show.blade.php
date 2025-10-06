@@ -3,44 +3,108 @@
 
 @section('styles')
 <style>
-  .submit-button {
-    background-color: yellow;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+  :root{
+    --bg-foundation:#F4F6F8;
+    --txt-main:#212529;
+    --txt-secondary:#6C757D;
+    --act-red:#E54D42;
+    --accent-yellow:#FFB900;
   }
-
-  .submit-button:hover {
-    background-color: green;
-    color: white;
-  }
+  .card-soft{ border:1px solid #E9ECEF; border-radius:.75rem; box-shadow:0 6px 20px rgba(33,37,41,.06); }
+  .section-title{ color:var(--txt-main); }
+  .text-secondary{ color:var(--txt-secondary)!important; }
+  .btn-primary{ background:var(--act-red)!important; border-color:var(--act-red)!important; }
+  .btn-primary:hover{ filter:brightness(0.95); }
+  .form-control{ border-radius:.5rem; padding:.7rem 1rem; }
+  .form-label{ font-weight:500; color:var(--txt-main); }
 </style>
-
-@section('content')
-<h1 style="background-color: rgba(255, 187, 0, 0.77); padding: 10px;">My Account</h1>
-
-@if(session('success'))
-  <div style="color: green;">{{ session('success') }}</div>
-@endif
-
-<h3 style="background-color: rgba(255, 0, 0, 0.77); color: white; padding: 5px;">Basic Info</h3>
-<form method="POST" action="{{ route('account.update') }}">
-  @csrf @method('PUT')
-  <div>Name: <input type="text" name="name" value="{{ old('name',$user->name) }}"></div>
-  <div>Email: <input type="email" name="email" value="{{ old('email',$user->email) }}"></div>
-  <div>Phone: <input type="text" name="phone" value="{{ old('phone',$user->phone) }}"></div>
-  <button type="submit" class="submit-button">Update Info</button>
-</form>
-
-<hr>
-
-<h3 style="background-color: rgba(255, 0, 0, 0.77); color: white; padding: 5px;">Change Password</h3>
-<form method="POST" action="{{ route('account.password') }}">
-  @csrf @method('PUT')
-  <div>New Password: <input type="password" name="password"></div>
-  <div>Confirm: <input type="password" name="password_confirmation"></div>
-  <button type="submit" class="submit-button">Change Password</button>
-</form>
-
 @endsection
 
+@section('content')
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="h4 fw-semibold section-title mb-0">My Account</h1>
+</div>
+
+{{-- Flash success --}}
+@if(session('success'))
+  <div class="alert alert-success border-0"> {{ session('success') }} </div>
+@endif
+
+{{-- Validation errors (แสดงแบบสวย) --}}
+@if ($errors->any())
+  <div class="alert alert-danger border-0">
+    <ul class="mb-0 ps-3">
+      @foreach ($errors->all() as $e)
+        <li>{{ $e }}</li>
+      @endforeach
+    </ul>
+  </div>
+@endif
+
+<div class="row g-4">
+  {{-- Basic Info --}}
+  <div class="col-12 col-lg-7">
+    <div class="card card-soft">
+      <div class="card-body p-4">
+        <h3 class="h6 fw-semibold mb-3 section-title">Basic Info</h3>
+
+        <form method="POST" action="{{ route('account.update') }}">
+          @csrf @method('PUT')
+
+          <div class="mb-3">
+            <label class="form-label" for="name">Name</label>
+            <input id="name" type="text" name="name" class="form-control"
+                   value="{{ old('name',$user->name) }}" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="email">Email</label>
+            <input id="email" type="email" name="email" class="form-control"
+                   value="{{ old('email',$user->email) }}" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="phone">Phone</label>
+            <input id="phone" type="text" name="phone" class="form-control"
+                   value="{{ old('phone',$user->phone) }}" />
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4">Update Info</button>
+            <a href="{{ url()->previous() }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {{-- Change Password --}}
+  <div class="col-12 col-lg-5">
+    <div class="card card-soft">
+      <div class="card-body p-4">
+        <h3 class="h6 fw-semibold mb-3 section-title">Change Password</h3>
+
+        <form method="POST" action="{{ route('account.password') }}">
+          @csrf @method('PUT')
+
+          <div class="mb-3">
+            <label class="form-label" for="password">New Password</label>
+            <input id="password" type="password" name="password" class="form-control" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="password_confirmation">Confirm</label>
+            <input id="password_confirmation" type="password" name="password_confirmation" class="form-control" />
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100">Change Password</button>
+        </form>
+
+        <div class="small text-secondary mt-3">
+          Tips: ใช้อักษรตัวพิมพ์ใหญ่/เล็ก ตัวเลข และอักขระพิเศษร่วมกันเพื่อความปลอดภัย
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endsection

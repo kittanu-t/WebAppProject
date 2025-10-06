@@ -1,153 +1,134 @@
 @extends('layouts.app')
-
 @section('title','Fields')
 
-@section('content')
-
+@section('styles')
 <style>
-    h1 {
-        font-size: 28px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #222;
-    }
-
-    form input[type="text"], 
-    form select {
-        padding: 6px 10px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        margin-right: 6px;
-    }
-
-    form button {
-        background-color: #f4c400; /* เหลือง */
-        color: #000;
-        border: none;
-        padding: 6px 14px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.3s;
-    }
-    form button:hover {
-        background-color: #e0b200;
-    }
-
-    table {
-        border-collapse: collapse;
-        width: 100%;
-        background: #fff;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    table th {
-        background: #f4c400; /* เหลือง */
-        color: #000;
-        padding: 10px;
-        text-align: left;
-    }
-
-    table td {
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-    }
-
-    table tr:nth-child(even) {
-        background: #fafafa;
-    }
-
-    table tr:hover {
-        background: #fff6e5;
-    }
-
-    a {
-        text-decoration: none;
-        font-weight: bold;
-    }
-    a[href*="show"] {
-        color: #d9534f; /* แดง */
-    }
-    a[href*="bookings"] {
-        color: #f4c400; /* เหลือง */
-    }
-
-    .pagination {
-        margin-top: 16px;
-    }
-    .pagination span, .pagination a {
-        padding: 6px 12px;
-        margin: 0 2px;
-        border-radius: 6px;
-        background: #fff;
-        border: 1px solid #ddd;
-        color: #333;
-        transition: 0.3s;
-    }
-    .pagination a:hover {
-        background: #f4c400;
-        color: #000;
-    }
-    .pagination .active {
-        background: #d9534f; /* แดง */
-        color: #fff;
-        border: none;
-    }
+  :root{
+      --bg-foundation:#F4F6F8;
+      --txt-main:#212529;
+      --txt-secondary:#6C757D;
+      --act-red:#E54D42;
+      --accent-yellow:#FFB900;
+  }
+  body{ background:var(--bg-foundation); color:var(--txt-main); }
+  .card-soft{ border:1px solid #E9ECEF; border-radius:.75rem; box-shadow:0 4px 14px rgba(33,37,41,.06); }
+  .page-title{ color:var(--txt-main); }
+  .text-secondary{ color:var(--txt-secondary)!important; }
+  .btn-primary{ background:var(--act-red)!important; border-color:var(--act-red)!important; }
+  .btn-primary:hover{ filter:brightness(0.95); }
+  .btn-outline-secondary:hover{ background:#E9ECEF; }
+  .badge-accent{ background:var(--accent-yellow); color:var(--txt-main); }
+  /* สีสถานะ */
+  .badge-available{ background:#28a745!important; color:#fff!important; }
+  .badge-unavailable{ background:var(--act-red)!important; color:#fff!important; }
 </style>
+@endsection
 
-<h1>Sports Fields</h1>
+@section('content')
+<div class="container">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h4 fw-semibold page-title mb-0">Sports Fields</h1>
+  </div>
 
-{{-- ฟอร์มค้นหา/กรอง --}}
-<form method="GET" class="mb-3" style="margin-bottom:16px;">
-    <input type="text" name="q" value="{{ request('q') }}" placeholder="ค้นหาชื่อสนาม/ที่ตั้ง">
-    <select name="sport_type">
+  {{-- ฟอร์มค้นหา --}}
+  <form method="GET" class="row g-2 align-items-center mb-4">
+    <div class="col-md-5 col-12">
+      <input type="text" name="q" value="{{ request('q') }}" 
+             class="form-control" placeholder="ค้นหาชื่อสนามหรือที่ตั้ง...">
+    </div>
+    <div class="col-md-3 col-6">
+      <select name="sport_type" class="form-select">
         <option value="">-- ชนิดกีฬา --</option>
         @foreach($types as $t)
-            <option value="{{ $t }}" @selected(request('sport_type')===$t)>{{ $t }}</option>
+          <option value="{{ $t }}" @selected(request('sport_type')===$t)>{{ $t }}</option>
         @endforeach
-    </select>
-    <label style="margin-left:8px;">
-        <input type="checkbox" name="only_available" value="1" @checked(request('only_available'))>
-        เฉพาะที่เปิดใช้งาน
-    </label>
-    <button type="submit">ค้นหา</button>
-</form>
+      </select>
+    </div>
+    <div class="col-md-3 col-6 d-flex align-items-center">
+      <div class="form-check me-3">
+        <input class="form-check-input" type="checkbox" name="only_available" value="1" id="chkAvail"
+               @checked(request('only_available'))>
+        <label class="form-check-label text-secondary small" for="chkAvail">
+          เฉพาะที่เปิดใช้งาน
+        </label>
+      </div>
+    </div>
+    <div class="col-md-1 col-12 d-grid">
+      <button type="submit" class="btn btn-primary">ค้นหา</button>
+    </div>
+  </form>
 
-{{-- ตารางรายการสนาม --}}
-<table>
-    <tr>
-        <th>ชื่อสนาม</th>
-        <th>กีฬา</th>
-        <th>ที่ตั้ง</th>
-        <th>ความจุ</th>
-        <th>สถานะ</th>
-        <th>การทำงาน</th>
-    </tr>
+  {{-- ตารางสนาม --}}
+  <div class="card card-soft">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr class="text-secondary small">
+              <th>ชื่อสนาม</th>
+              <th>กีฬา</th>
+              <th>ที่ตั้ง</th>
+              <th>ความจุ</th>
+              <th>สถานะ</th>
+              <th class="text-center">การทำงาน</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($fields as $f)
+              <tr>
+                <td class="fw-semibold">{{ $f->name }}</td>
+                <td>{{ $f->sport_type }}</td>
+                <td class="text-secondary small">{{ $f->location }}</td>
+                <td>{{ $f->capacity }}</td>
+                <td>
+                  @switch(strtolower($f->status))
+                    @case('available')
+                      <span class="badge badge-available">Available</span>
+                      @break
+                    @case('unavailable')
+                      <span class="badge badge-unavailable">Unavailable</span>
+                      @break
+                    @case('open')
+                      <span class="badge bg-success">เปิด</span>
+                      @break
+                    @case('closed')
+                      <span class="badge bg-secondary">ปิด</span>
+                      @break
+                    @default
+                      <span class="badge bg-light text-dark">{{ ucfirst($f->status) }}</span>
+                  @endswitch
+                </td>
+                <td class="text-center">
+                  <a href="{{ route('fields.show', $f->id) }}" class="btn btn-outline-secondary btn-sm">
+                    ดูปฏิทิน
+                  </a>
 
-    @forelse($fields as $f)
-        <tr>
-            <td>{{ $f->name }}</td>
-            <td>{{ $f->sport_type }}</td>
-            <td>{{ $f->location }}</td>
-            <td>{{ $f->capacity }}</td>
-            <td>{{ $f->status }}</td>
-            <td>
-                <a href="{{ route('fields.show', $f->id) }}">ดูปฏิทิน</a>
-                @auth
+                  @auth
                     @if(auth()->user()->role === 'user')
-                        | <a href="{{ route('bookings.create', ['field_id' => $f->id]) }}">จองสนามนี้</a>
+                      <a href="{{ route('bookings.create', ['field_id' => $f->id, 'field_name' => $f->name]) }}" 
+                         class="btn btn-primary btn-sm ms-1">
+                        จองสนามนี้
+                      </a>
                     @endif
-                @endauth
-            </td>
-        </tr>
-    @empty
-        <tr><td colspan="6">ยังไม่มีข้อมูลสนาม</td></tr>
-    @endforelse
-</table>
+                  @endauth
+                </td>
+              </tr>
+            @empty
+              <tr>
+                <td colspan="6" class="text-center text-secondary py-4">
+                  ยังไม่มีข้อมูลสนาม
+                </td>
+              </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-<div style="margin-top:12px;">
+  {{-- Pagination --}}
+  <div class="mt-4">
     {{ $fields->links() }}
+  </div>
 </div>
 @endsection

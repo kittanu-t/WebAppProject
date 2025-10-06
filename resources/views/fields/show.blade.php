@@ -2,114 +2,144 @@
 @extends('layouts.app')
 @section('title', $field->name)
 
-@section('content')
-<h1>{{ $field->name }} ({{ $field->sport_type }})</h1>
-<p>Location: {{ $field->location }} | Status: {{ $field->status }}</p>
-
-<label for="unit-select">เลือกคอร์ต</label>
-<select id="unit-select">
-  @foreach($field->units->sortBy('index') as $u)
-    <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->status }})</option>
-  @endforeach
-</select>
-
-<div id="calendar" style="margin-top:12px;"></div>
-
+@section('styles')
 <style>
-  /* 🎨 พื้นหลังขาว */
-  body {
-    background: #ffffff;
-    font-family: Arial, sans-serif;
-    color: black; /* ฟ้อนสีดำ */
+  :root{
+    --bg-foundation:#F4F6F8; --txt-main:#212529; --txt-secondary:#6C757D;
+    --act-red:#E54D42; --accent-yellow:#FFB900;
   }
-
-  #calendar { 
-    max-width: 1100px; 
-    min-height: 600px; 
-    margin-top: 20px;
-    background: #fff; 
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    padding: 10px;
-  }
-
-  /* ✅ Approved bookings = เขียว */
-  .fc-booking-approved,
-  .fc-booking-approved .fc-event-main {
-    background:#4caf50 !important;
-    border-color:#4caf50 !important;
-    color: white !important;
-    font-weight: bold;
-  }
-
-  /* ⏳ Pending bookings = เหลือง */
-  .fc-booking-pending,
-  .fc-booking-pending .fc-event-main {
-    background:#ffeb3b !important;
-    border-color:#fdd835 !important;
-    color: black !important;
-    font-weight: bold;
-  }
-
-  /* 🚫 Closure = เทาโปร่ง */
-  .fc-closure {
-    background: rgba(128,128,128,.35) !important;
-    border-color: rgba(128,128,128,.35) !important;
-    color: black !important;
-  }
-
-  /* ปุ่ม Header (month/week/day) */
-  .fc .fc-button {
-    background: #fbc02d;
-    color: black;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-weight: bold;
-  }
-  .fc .fc-button-active {
-    background: #e53935 !important;
-    color: white !important;
-  }
+  body{ background:var(--bg-foundation); }
+  .card-soft{ border:1px solid #E9ECEF; border-radius:.75rem; box-shadow:0 4px 14px rgba(33,37,41,.06); }
+  .page-title{ color:var(--txt-main); }
+  .text-secondary{ color:var(--txt-secondary)!important; }
+  .btn-primary{ background:var(--act-red)!important; border-color:var(--act-red)!important; }
+  .btn-primary:hover{ filter:brightness(0.95); }
+  .badge-accent{ background:var(--accent-yellow); color:var(--txt-main); }
+  .legend-dot{ display:inline-block; width:.75rem; height:.75rem; border-radius:999px; margin-right:.4rem; vertical-align:middle; }
 </style>
+@endsection
+
+@section('content')
+<div class="container">
+  {{-- Header --}}
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h4 fw-semibold page-title mb-1">
+        {{ $field->name }} <span class="text-secondary fw-normal">({{ $field->sport_type }})</span>
+      </h1>
+      <div class="small text-secondary">
+        Location: <span>{{ $field->location }}</span>
+        <span class="mx-2">|</span>
+        Status:
+        <span id="field-status" class="badge rounded-pill px-3 py-2">{{ $field->status }}</span>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{{ route('fields.index') }}" class="btn btn-outline-secondary">← Back</a>
+      @auth
+        @if(auth()->user()->role === 'user')
+          <a href="{{ route('bookings.create', ['field_id' => $field->id, 'field_name' => $field->name]) }}"
+             class="btn btn-primary">
+            จองสนามนี้
+          </a>
+        @endif
+      @endauth
+    </div>
+  </div>
+
+  {{-- Controls --}}
+  <div class="card card-soft mb-3">
+    <div class="card-body">
+      <label for="unit-select" class="form-label mb-2">เลือกคอร์ท</label>
+      <select id="unit-select" class="form-select w-auto">
+        @foreach($field->units->sortBy('index') as $u)
+          <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->status }})</option>
+        @endforeach
+      </select>
+    </div>
+  </div>
+
+  {{-- Calendar --}}
+  <div class="card card-soft">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h6 fw-semibold mb-0">Calendar</h2>
+        <div class="small text-secondary">
+          <span class="legend-dot" style="background:#E9ECEF;"></span> ปิดสนาม/คอร์ท
+          <span class="legend-dot ms-3" style="background:#28a745;"></span> Approved
+          <span class="legend-dot ms-3" style="background:#fd7e14;"></span> Pending
+        </div>
+      </div>
+      <div id="calendar"></div>
+    </div>
+  </div>
+</div>
+
+{{-- FullCalendar JS (ถ้ายังไม่ได้โหลดจากที่อื่น) --}}
+<script>
+  (function(){
+    if (!window.FC){
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js';
+      document.head.appendChild(s);
+    }
+  })();
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const { Calendar, dayGridPlugin, timeGridPlugin, interactionPlugin } = window.FC;
+  // สีสถานะ Available / Unavailable (และ open/closed) — ทำฝั่งหน้าเพื่อไม่แตะ Blade logic
+  (function(){
+    const el = document.getElementById('field-status');
+    if(!el) return;
+    const t = (el.textContent || '').trim().toLowerCase();
+    el.classList.remove('bg-success','bg-secondary','bg-danger','bg-light','text-dark');
+    switch(t){
+      case 'available':  el.classList.add('bg-success'); el.classList.remove('text-dark'); break; // เขียว
+      case 'unavailable':el.classList.add('bg-danger');  break; // แดง (#E54D42 โทน Bootstrap danger)
+      case 'open':       el.classList.add('bg-success'); break;
+      case 'closed':     el.classList.add('bg-secondary'); break;
+      default:           el.classList.add('bg-light','text-dark'); break;
+    }
+  })();
 
-  const unitSelect = document.getElementById('unit-select');
-  const calEl      = document.getElementById('calendar');
-  const baseEvents = "{{ url('/api/fields/'.$field->id.'/units') }}";
+  // FullCalendar
+  const waitForFC = () => {
+    if (!window.FC){ return setTimeout(waitForFC, 50); }
+    const { Calendar, dayGridPlugin, timeGridPlugin, interactionPlugin } = window.FC;
 
-  const cal = new Calendar(calEl, {
-    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-    initialView: 'timeGridWeek',
-    height: 650,
-    nowIndicator: true,
-    allDaySlot: false,
-    slotMinTime: '06:00:00',
-    slotMaxTime: '23:00:00',
-    headerToolbar: { 
-      left:'prev,next today', 
-      center:'title', 
-      right:'dayGridMonth,timeGridWeek,timeGridDay' 
-    },
-    events(fetchInfo, success, failure) {
-      const unitId = unitSelect.value;
-      if (!unitId) { success([]); return; }
-      const url = `${baseEvents}/${unitId}/events?start=${encodeURIComponent(fetchInfo.start.toISOString())}&end=${encodeURIComponent(fetchInfo.end.toISOString())}`;
-      fetch(url, { credentials:'same-origin' })
-        .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-        .then(success)
-        .catch(failure);
-    },
-    eventClassNames: arg => arg.event.extendedProps.className || arg.event.classNames || [],
-    eventDidMount(info){ if (info.event.title) info.el.title = info.event.title; },
-  });
+    const unitSelect = document.getElementById('unit-select');
+    const calEl      = document.getElementById('calendar');
+    const baseEvents = "{{ url('/api/fields/'.$field->id.'/units') }}";
 
-  cal.render();
-  unitSelect.addEventListener('change', () => cal.refetchEvents());
-  if (unitSelect.value) cal.refetchEvents();
+    const cal = new Calendar(calEl, {
+      plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+      initialView: 'timeGridWeek',
+      height: 650,
+      nowIndicator: true,
+      allDaySlot: false,
+      slotMinTime: '06:00:00',
+      slotMaxTime: '23:00:00',
+      headerToolbar: { left:'prev,next today', center:'title', right:'dayGridMonth,timeGridWeek,timeGridDay' },
+      events(fetchInfo, success, failure) {
+        const unitId = unitSelect.value;
+        if (!unitId) { success([]); return; }
+        const url = `${baseEvents}/${unitId}/events?start=${encodeURIComponent(fetchInfo.start.toISOString())}&end=${encodeURIComponent(fetchInfo.end.toISOString())}`;
+        fetch(url, { credentials:'same-origin' })
+          .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+          .then(success)
+          .catch(failure);
+      },
+      eventClassNames: arg => arg.event.extendedProps.className || arg.event.classNames || [],
+      eventDidMount(info){ if (info.event.title) info.el.title = info.event.title; },
+    });
+
+    cal.render();
+    unitSelect.addEventListener('change', () => cal.refetchEvents());
+    if (unitSelect.value) cal.refetchEvents();
+  };
+  waitForFC();
 });
 </script>
 @endsection

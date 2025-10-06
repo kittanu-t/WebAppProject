@@ -3,38 +3,70 @@
 
 @section('styles')
 <style>
-  .submit-button {
-    background-color: rgba(255, 0, 0, 0.77);
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+  :root{
+      --bg-foundation:#F4F6F8;
+      --txt-main:#212529;
+      --txt-secondary:#6C757D;
+      --act-red:#E54D42;
+      --accent-yellow:#FFB900;
   }
-
-  .submit-button:hover {
-    background-color: green;
-    color: white;
-  }
+  body{ background:var(--bg-foundation); }
+  .page-title{ color:var(--txt-main); }
+  .form-control{ border-radius:.5rem; padding:.65rem .9rem; }
+  .btn-primary{ background:var(--act-red)!important; border-color:var(--act-red)!important; }
+  .btn-primary:hover{ filter:brightness(0.95); }
+  .card-soft{ border:1px solid #E9ECEF; border-radius:.75rem; box-shadow:0 4px 14px rgba(33,37,41,.06); }
+  .announcement-meta{ color:var(--txt-secondary); font-size:.875rem; }
+  .badge-accent{ background:var(--accent-yellow); color:var(--txt-main); }
 </style>
+@endsection
 
 @section('content')
-<h1 style="background-color: rgb(255, 187, 0); padding: 10px;">Announcements</h1>
+<div class="container">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h4 fw-semibold page-title mb-0">Announcements</h1>
+      </div>
 
-<form method="GET" class="mb-2">
-  <input type="text" name="q" value="{{ request('q') }}" placeholder="ค้นหาหัวข้อ/เนื้อหา">
-  <button class="submit-button">ค้นหา</button>
-</form>
-
-@forelse($announcements as $a)
-  <div class="border p-3 mb-3">
-    <div><strong style="background-color: rgb(255, 238, 0); padding: 3px;">{{ $a->title }}</strong></div>
-    <div class="text-sm">Audience: {{ $a->audience }} | Published: {{ $a->published_at }}</div>
-    <div class="mt-1">
-      <a href="{{ route('user.announcements.show', $a) }}">อ่านต่อ</a>
+  {{-- Search Form --}}
+  <form method="GET" class="row g-2 align-items-center mb-4">
+    <div class="col-sm-10 col-12">
+      <input type="text" name="q" value="{{ request('q') }}" class="form-control"
+             placeholder="ค้นหาหัวข้อหรือเนื้อหาประกาศ...">
     </div>
-  </div>
-@empty
-  <p style="color: red;">ยังไม่มีประกาศ</p>
-@endforelse
+    <div class="col-sm-2 col-12 d-grid">
+      <button class="btn btn-primary">ค้นหา</button>
+    </div>
+  </form>
 
-{{ $announcements->links() }}
+  {{-- Announcements List --}}
+  @forelse($announcements as $a)
+    <div class="card card-soft mb-3">
+      <div class="card-body">
+        <h5 class="fw-semibold mb-1" style="color:var(--txt-main);">{{ $a->title }}</h5>
+        <div class="announcement-meta mb-2">
+          Audience: 
+          <span class="text-capitalize">{{ $a->audience }}</span> 
+          <span class="mx-2">|</span>
+          Published: <span>{{ $a->published_at }}</span>
+        </div>
+        <div>
+          <a href="{{ route('user.announcements.show', $a) }}" 
+             class="text-decoration-none fw-medium"
+             style="color:var(--act-red);">
+             อ่านต่อ →
+          </a>
+        </div>
+      </div>
+    </div>
+  @empty
+    <div class="alert alert-light text-center text-secondary border rounded-4 shadow-sm">
+      ยังไม่มีประกาศในขณะนี้
+    </div>
+  @endforelse
+
+  {{-- Pagination --}}
+  <div class="mt-4">
+    {{ $announcements->links() }}
+  </div>
+</div>
 @endsection
