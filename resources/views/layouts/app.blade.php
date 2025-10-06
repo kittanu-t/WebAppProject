@@ -32,7 +32,23 @@
             --act-red:#E54D42;
             --accent-yellow:#FFB900;
         }
-        body{ background:var(--bg-foundation); color:var(--txt-main); }
+            body {
+                position: relative;
+                color: var(--txt-main);
+                min-height: 100vh;
+                z-index: 0;
+            }
+
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background: url('/image/8fbb7261bd4193ad9e7166f753af212c.jpg') no-repeat center center fixed;
+                background-size: cover;
+                opacity: 0.2;
+                z-index: -1;
+            }
         .navbar{ background:#fff; border-bottom:1px solid #E9ECEF; }
         .navbar .nav-link{ color:var(--txt-main); }
         .navbar .nav-link:hover{ color:#000; }
