@@ -37,7 +37,7 @@
       {{-- ปุ่มกลับ --}}
       <div class="text-start">
         <a href="{{ route('user.announcements.index') }}" 
-           class="btn btn-outline-secondary px-4">
+           class="btn btn-dark px-4">
           ← กลับรายการประกาศ
         </a>
       </div>

@@ -23,9 +23,19 @@
     <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.19/main.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.19/main.min.css" rel="stylesheet">
 
+    <style>
+        .bg-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('{{ asset('images/background.jpg') }}') center center / cover no-repeat fixed;
+            opacity: 0.25;        /* ความโปร่ง (0.0 - 1.0) */
+            z-index: -1;          /* ให้ภาพอยู่ใต้เนื้อหา */
+        }
+    </style>
+
 </head>
 <body class="antialiased">
-
+<div class="bg-overlay"></div>
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg sticky-top navbar-light shadow-sm">
     <div class="container">
@@ -37,12 +47,6 @@
             <img src="{{ asset('images\logo_png.png') }}" alt="Khon Kaen Sport Hub Logo" style="height: 30px; width: auto;" class="me-2">
             <span>Khon Kaen Sport Hub</span>
         </a>
-
-        <!-- Toggler -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav"
-                aria-controls="topNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
 
         <div id="topNav" class="collapse navbar-collapse">
             <!-- เมนูซ้าย -->

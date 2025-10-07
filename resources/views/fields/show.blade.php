@@ -6,7 +6,7 @@
 @endsection
 
 @section('content')
-<div class="container">
+<div class="container-fluid py-4" style="background-color:#f4f6f8; min-height:100vh;">
   {{-- Header --}}
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
     <div>
