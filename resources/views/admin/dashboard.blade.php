@@ -2,7 +2,7 @@
 @section('title','Admin Dashboard')
 
 @section('content')
-<div class="container-fluid py-4" style="background-color:#f8f9fa; min-height:100vh;">
+<div class="container-fluid py-4 rounded-3" style="background-color:#f8f9fa; min-height:100vh;">
     <div class="row">
         <div class="col-md-10">
             <h1 class="text-dark mb-4">Admin Dashboard</h1>

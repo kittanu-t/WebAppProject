@@ -23,69 +23,6 @@
     <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.19/main.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.19/main.min.css" rel="stylesheet">
 
-    <!-- สไตล์ตาม Style Guide -->
-    <style>
-        :root{
-            --bg-foundation:#F4F6F8;
-            --txt-main:#212529;
-            --txt-secondary:#6C757D;
-            --act-red:#E54D42;
-            --accent-yellow:#FFB900;
-        }
-        .navbar{ background:#fff; border-bottom:1px solid #E9ECEF; height: 75px;}
-        .navbar .nav-link{ color:var(--txt-main); }
-        .navbar .nav-link:hover{ color:#000; }
-        .navbar .nav-link.active{
-            color:#000;
-            position:relative;
-            font-weight:600;
-        }
-        .navbar .nav-link.active::after{
-            content:"";
-            position:absolute; left:0; right:0; bottom:-6px; height:3px;
-            background:var(--act-red); border-radius:3px;
-        }
-
-        .btn-primary{
-            background:var(--act-red) !important;
-            border-color:var(--act-red) !important;
-        }
-        .btn-primary:hover{ filter:brightness(0.95); }
-
-        /* ปุ่ม Logout = แดงตามธีม */
-        .btn-logout{
-            background:var(--act-red) !important;
-            border-color:var(--act-red) !important;
-            color:#fff !important;
-        }
-        .btn-logout:hover{ filter:brightness(0.95); }
-
-        .badge-accent{ background:var(--accent-yellow); color:var(--txt-main); }
-        .text-secondary{ color:var(--txt-secondary) !important; }
-        .shadow-soft{ box-shadow:0 4px 14px rgba(33,37,41,.06); }
-        .alert-border{ border-left:4px solid var(--act-red); }
-        main{ min-height: calc(100vh - 72px); }
-
-        /* กระดิ่งแจ้งเตือน */
-        .bell-btn{
-            position:relative; background:#fff; border:1px solid #E9ECEF;
-            transition:transform .15s ease, box-shadow .15s ease;
-        }
-        .bell-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.06); }
-        .bell-badge{
-            position:absolute; top:-6px; right:-6px; min-width:18px; height:18px;
-            font-size:11px; border-radius:999px; background:#dc3545; color:#fff;
-            display:flex; align-items:center; justify-content:center; padding:0 4px;
-        }
-        .notif-panel{
-            width:22rem; background:#fff; border:1px solid #E9ECEF; border-radius:.5rem;
-        }
-
-        /* แบนด์ไม่ให้คลิก (ใช้เมื่อเป็น Staff/Admin – ใส่ด้วย JS ฝั่งหน้า) */
-        .brand-disabled{
-            pointer-events:none; cursor:default; 
-        }
-    </style>
 </head>
 <body class="antialiased">
 
@@ -93,7 +30,7 @@
 <nav class="navbar navbar-expand-lg sticky-top navbar-light shadow-sm">
     <div class="container">
 
-        <!-- Brand (ปิดคลิกทุกบทบาท) -->
+        <!-- Brand -->
         <a id="brandLink"
            class="navbar-brand fw-semibold d-flex align-items-center brand-disabled"
            href="{{ route('home') }}" aria-disabled="true" tabindex="-1" style="color:var(--txt-main)">
@@ -113,19 +50,17 @@
 
                 {{-- เมนูสำหรับ Guest --}}
                 @guest
+                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('fields.index') }}">Fields</a></li>
                 @endguest
 
                 {{-- เมนูสำหรับผู้ใช้ที่ล็อกอินแล้ว --}}
                 @auth
                     @if(auth()->user()->role === 'user')
-                        <!-- NEW: Home (เฉพาะ User เท่านั้น) -->
                         <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Home</a></li>
-
                         <li class="nav-item"><a class="nav-link" href="{{ route('bookings.index') }}">My Bookings</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('fields.index') }}">Fields</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.announcements.index') }}">Announcements</a></li>
-                        {{-- Account ของ user จะถูกย้ายไปขวาสุดด้านล่าง (ส่วนขวา) --}}
                     @endif
 
                     @if(auth()->user()->role === 'staff')

@@ -2,23 +2,6 @@
 @section('title','Announcements')
 
 @section('styles')
-<style>
-  :root{
-      --bg-foundation:#F4F6F8;
-      --txt-main:#212529;
-      --txt-secondary:#6C757D;
-      --act-red:#E54D42;
-      --accent-yellow:#FFB900;
-  }
-  body{ background:var(--bg-foundation); }
-  .page-title{ color:var(--txt-main); }
-  .form-control{ border-radius:.5rem; padding:.65rem .9rem; }
-  .btn-primary{ background:var(--act-red)!important; border-color:var(--act-red)!important; }
-  .btn-primary:hover{ filter:brightness(0.95); }
-  .card-soft{ border:1px solid #E9ECEF; border-radius:.75rem; box-shadow:0 4px 14px rgba(33,37,41,.06); }
-  .announcement-meta{ color:var(--txt-secondary); font-size:.875rem; }
-  .badge-accent{ background:var(--accent-yellow); color:var(--txt-main); }
-</style>
 @endsection
 
 @section('content')
