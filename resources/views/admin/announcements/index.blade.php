@@ -55,7 +55,7 @@
                                 </td>
                             </tr>
                         @endforeach
-                    </tbody>z
+                    </tbody>
                 </table>
 
                 <!-- Pagination -->

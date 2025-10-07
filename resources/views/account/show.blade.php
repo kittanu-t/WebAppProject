@@ -2,22 +2,6 @@
 @section('title','My Account')
 
 @section('styles')
-<style>
-  :root{
-    --bg-foundation:#F4F6F8;
-    --txt-main:#212529;
-    --txt-secondary:#6C757D;
-    --act-red:#E54D42;
-    --accent-yellow:#FFB900;
-  }
-  .card-soft{ border:1px solid #E9ECEF; border-radius:.75rem; box-shadow:0 6px 20px rgba(33,37,41,.06); }
-  .section-title{ color:var(--txt-main); }
-  .text-secondary{ color:var(--txt-secondary)!important; }
-  .btn-primary{ background:var(--act-red)!important; border-color:var(--act-red)!important; }
-  .btn-primary:hover{ filter:brightness(0.95); }
-  .form-control{ border-radius:.5rem; padding:.7rem 1rem; }
-  .form-label{ font-weight:500; color:var(--txt-main); }
-</style>
 @endsection
 
 @section('content')
