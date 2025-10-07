@@ -45,7 +45,7 @@ class AnnouncementController extends Controller
             'content'     => $data['content'],
             'audience'    => $data['audience'],
             'created_by'  => $request->user()->id,
-            'published_at'=> $data['published_at'] ?? now(), // ถ้าไม่ใส่ถือว่า publish ทันที
+            'published_at'=> $data['published_at'] ?? now(),
         ]);
 
         return redirect()->route('admin.announcements.index')->with('status','สร้างประกาศสำเร็จ');

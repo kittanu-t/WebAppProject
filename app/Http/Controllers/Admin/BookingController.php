@@ -10,7 +10,7 @@ use App\Models\Booking;
 use App\Models\BookingLog;
 use App\Models\SportsField;
 use App\Models\User;
-use App\Models\UserNotification; // = notifications table model
+use App\Models\UserNotification; 
 
 class BookingController extends Controller
 {
@@ -77,7 +77,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $b->id,
-                'action'     => $new, // ตรงกับ enum ที่เรากำหนด
+                'action'     => $new, // ตรงกับ enum ที่กำหนด
                 'by_user_id' => $request->user()->id,
                 'note'       => $data['note'] ?? null,
                 'created_at' => now(),

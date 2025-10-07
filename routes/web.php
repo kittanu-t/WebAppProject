@@ -13,7 +13,7 @@ use App\Http\Controllers\Staff\FieldController   as StaffFieldController;
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController        as AdminUserController;
-use App\Http\Controllers\Admin\SportsFieldController as AdminFieldController;   // ✅ ใช้ alias นี้
+use App\Http\Controllers\Admin\SportsFieldController as AdminFieldController; 
 use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Controllers\Admin\BookingController     as AdminBookingController;
 use App\Http\Controllers\Admin\FieldUnitController; 
@@ -63,7 +63,7 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
     Route::post('/notifications/read-all',  [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
     Route::get('/notifications/feed',       [NotificationController::class, 'feed'])->name('notifications.feed');
 
-    // Announcements (ผู้ใช้ดู)
+    // Announcements (ผู้ใช้)
     Route::get('/announcements',                [AnnouncementPublicController::class, 'index'])->name('user.announcements.index');
     Route::get('/announcements/{announcement}', [AnnouncementPublicController::class, 'show'])->name('user.announcements.show');
 
@@ -90,13 +90,13 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
         // สนามที่รับผิดชอบ + ปิด/เปิด
         Route::get('/fields', [StaffFieldController::class, 'myFields'])->name('fields.index');
 
-        // ✅ ให้ตรงกับเมธอดที่เราสร้างไว้ (closeField/openField/closeUnit/openUnit)
+        // field management (ปิด/เปิดสนาม, ปิด/เปิดคอร์ต)
         Route::post('/fields/{field}/close',     [StaffFieldController::class, 'closeField'])->name('fields.close');
         Route::post('/fields/{field}/open',      [StaffFieldController::class, 'openField'])->name('fields.open');
         Route::post('/fields/{field}/units/{unit}/close', [StaffFieldController::class, 'closeUnit'])->name('units.close');
         Route::post('/fields/{field}/units/{unit}/open',  [StaffFieldController::class, 'openUnit'])->name('units.open');
 
-        // (ถ้ายังใช้หน้า schedule เดิม)
+        // ปฏิทินการใช้งานสนาม (ของสนามที่รับผิดชอบ)
         Route::get('/fields/schedule', [StaffFieldController::class, 'schedule'])->name('fields.schedule');
     });
 
