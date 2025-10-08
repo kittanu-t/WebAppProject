@@ -15,7 +15,7 @@ use App\Models\Announcement;
 class FieldController extends Controller
 {
     // ==== LIST ====
-    public function myFields(Request $request)
+    public function myFields(Request $request) // แสดงสนามที่สตาฟเป็น owner พร้อม units (เรียง index) และรายการปิดให้บริการที่ยัง active
     {
         $staff = $request->user();
 
@@ -42,7 +42,7 @@ class FieldController extends Controller
     }
 
     // ==== FIELD CLOSE/OPEN ====
-    public function closeField(Request $request, $fieldId)
+    public function closeField(Request $request, $fieldId) // ปิดทั้งสนาม: บันทึก FieldClosure, อัปเดตสถานะสนาม, และสร้างประกาศแจ้งผู้ใช้
     {
         $staff = $request->user();
         $data = $request->validate([
@@ -88,7 +88,7 @@ class FieldController extends Controller
         return back()->with('status', 'ปิดสนามทั้งก้อนเรียบร้อย');
     }
 
-    public function openField(Request $request, $fieldId)
+    public function openField(Request $request, $fieldId) // เปิดทั้งสนาม: ปิด (สิ้นสุด) closures ที่ยัง active ของสนาม แล้วสร้างประกาศเปิดบริการ
     {
         $staff = $request->user();
         $field = SportsField::where('owner_id', $staff->id)->findOrFail($fieldId);
@@ -116,7 +116,7 @@ class FieldController extends Controller
     }
 
     // ==== UNIT CLOSE/OPEN ====
-    public function closeUnit(Request $request, $fieldId, $unitId)
+    public function closeUnit(Request $request, $fieldId, $unitId) // ปิดเฉพาะยูนิต: บันทึก FieldClosure ของยูนิต, อัปเดตสถานะยูนิต, และสร้างประกาศ
     {
         $staff = $request->user();
         $data = $request->validate([
@@ -162,7 +162,7 @@ class FieldController extends Controller
         return back()->with('status', "ปิด {$unit->name} เรียบร้อย");
     }
 
-    public function openUnit(Request $request, $fieldId, $unitId)
+    public function openUnit(Request $request, $fieldId, $unitId) // เปิดเฉพาะยูนิต: สิ้นสุด closures ของยูนิต, เปลี่ยนสถานะเป็น available, และสร้างประกาศ
     {
         $staff = $request->user();
         $field = SportsField::where('owner_id', $staff->id)->findOrFail($fieldId);
@@ -188,6 +188,4 @@ class FieldController extends Controller
 
         return back()->with('status', "เปิด {$unit->name} เรียบร้อย");
     }
-
-    // (เดิม) schedule(), events() ถ้ายังใช้ได้อยู่ก็เก็บไว้ได้
 }

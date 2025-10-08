@@ -12,7 +12,7 @@ use DB;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index()  // แสดงสรุปข้อมูลบนแดชบอร์ด เช่น จำนวนผู้ใช้ สนาม การจอง และสถิติการใช้งานล่าสุด
     {
         // จำนวนทั้งหมด
         $totalBookings = Booking::count();

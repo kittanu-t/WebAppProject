@@ -11,10 +11,8 @@ use App\Models\UserNotification;
 
 class BookingController extends Controller
 {
-    /**
-     * แสดงรายการ booking ที่ pending ของสนามที่ staff เป็นเจ้าของ
-     */
-    public function index(Request $request)
+    public function index(Request $request) // แสดงรายการคำขอจองสถานะ pending เฉพาะสนามที่สตาฟเป็นเจ้าของ พร้อมแบ่งหน้า
+
     {
         $staff = $request->user();
 
@@ -30,10 +28,7 @@ class BookingController extends Controller
         return view('staff.bookings.index', compact('bookings'));
     }
 
-    /**
-     * อนุมัติ booking
-     */
-    public function approve(Request $request, $id)
+    public function approve(Request $request, $id) // อนุมัติการจองแบบทรานแซกชัน บันทึกล็อก และส่งการแจ้งเตือนไปยังผู้จอง
     {
         $staff = $request->user();
 
@@ -70,10 +65,7 @@ class BookingController extends Controller
         return back()->with('status','อนุมัติเรียบร้อย');
     }
 
-    /**
-     * ปฏิเสธ booking
-     */
-    public function reject(Request $request, $id)
+    public function reject(Request $request, $id) // ปฏิเสธการจองแบบทรานแซกชัน บันทึกล็อก และส่งการแจ้งเตือนไปยังผู้จอง
     {
         $staff = $request->user();
 

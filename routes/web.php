@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\BookingController     as AdminBookingController;
 use App\Http\Controllers\Admin\FieldUnitController; 
 
 use App\Models\Announcement;
+use App\Models\SportsField;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,7 +42,7 @@ Route::get('/fields', [FieldPublicController::class, 'index'])->name('fields.ind
 Route::get('/fields/{field}', [FieldPublicController::class, 'show'])->name('fields.show');
 
 // JSON: รายการคอร์ตของสนาม (ใช้ตอนหน้า Create Booking)
-Route::get('/api/fields/{field}/units', function (\App\Models\SportsField $field) {
+Route::get('/api/fields/{field}/units', function (SportsField $field) {
     return $field->units()->orderBy('index')->get(['id','name','status']);
 })->name('fields.units.list');
 
@@ -108,7 +109,7 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
         Route::resource('/users',        AdminUserController::class);
         Route::resource('/announcements', AdminAnnouncementController::class);
 
-        // All bookings (ที่เราสร้างไว้)
+        // All bookings (ที่สร้างไว้)
         Route::get('/bookings',                    [AdminBookingController::class, 'index'])->name('bookings.index');
         Route::post('/bookings/{id}/status',       [AdminBookingController::class, 'updateStatus'])->name('bookings.updateStatus');
 

@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const startInp = document.getElementById('start_time');
   const endInp   = document.getElementById('end_time');
 
-  // ✅ เคลียร์ class เดิม (เราไม่มี CSS ชื่อเหล่านี้แล้ว แต่คง logic ไว้)
+  //  เคลียร์ class เดิม (ไม่มี CSS ชื่อเหล่านี้แล้ว แต่คง logic ไว้)
   function updateBorders() {
     document.querySelectorAll('input, select, textarea').forEach(el => {
       el.classList.remove('input-filled', 'input-empty');

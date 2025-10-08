@@ -23,11 +23,6 @@ class SportsField extends Model
         return $this->hasManyThrough(Booking::class, FieldUnit::class, 'sports_field_id', 'field_unit_id'); 
     }
 
-    public function fieldImages(): HasMany
-    {
-        return $this->hasMany(FieldImage::class);
-    }
-
     public function fieldClosures(): HasMany
     {
         return $this->hasMany(FieldClosure::class);

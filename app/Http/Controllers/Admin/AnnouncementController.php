@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class AnnouncementController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request) // แสดงรายการประกาศทั้งหมด พร้อมค้นหาและกรองตาม audience
     {
         $q = Announcement::with('creator');
 
@@ -31,12 +31,12 @@ class AnnouncementController extends Controller
         return view('admin.announcements.index', compact('announcements'));
     }
 
-    public function create()
+    public function create() // แสดงฟอร์มสร้างประกาศใหม่
     {
         return view('admin.announcements.create');
     }
 
-    public function store(StoreAnnouncementRequest $request)
+    public function store(StoreAnnouncementRequest $request) // บันทึกประกาศใหม่ลงฐานข้อมูลหลังตรวจสอบข้อมูลแล้ว
     {
         $data = $request->validated();
 
@@ -51,17 +51,17 @@ class AnnouncementController extends Controller
         return redirect()->route('admin.announcements.index')->with('status','สร้างประกาศสำเร็จ');
     }
 
-    public function show(Announcement $announcement)
+    public function show(Announcement $announcement) // แสดงรายละเอียดประกาศเฉพาะรายการ
     {
         return view('admin.announcements.show', compact('announcement'));
     }
 
-    public function edit(Announcement $announcement)
+    public function edit(Announcement $announcement) // แสดงฟอร์มแก้ไขประกาศที่เลือก
     {
         return view('admin.announcements.edit', compact('announcement'));
     }
 
-    public function update(UpdateAnnouncementRequest $request, Announcement $announcement)
+    public function update(UpdateAnnouncementRequest $request, Announcement $announcement) // อัปเดตข้อมูลประกาศที่มีอยู่ในฐานข้อมูล
     {
         $data = $request->validated();
 
@@ -78,6 +78,6 @@ class AnnouncementController extends Controller
     public function destroy(Announcement $announcement)
     {
         $announcement->delete();
-        return redirect()->route('admin.announcements.index')->with('status','ลบประกาศสำเร็จ');
+        return redirect()->route('admin.announcements.index')->with('status','ลบประกาศสำเร็จ'); // ลบประกาศออกจากฐานข้อมูล
     }
 }

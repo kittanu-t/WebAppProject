@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BookingLog extends Model
 {
-    public $timestamps = false; // เรามีแค่ created_at
+    public $timestamps = false; // มีแค่ created_at
     protected $fillable = ['booking_id','action','by_user_id','note','created_at'];
     protected $casts = ['created_at' => 'datetime'];
 

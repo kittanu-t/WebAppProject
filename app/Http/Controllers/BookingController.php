@@ -48,7 +48,7 @@ class BookingController extends Controller
         // 1) Validate
         $data = $request->validate([
             'sports_field_id' => ['required','integer','exists:sports_fields,id'],
-            'field_unit_id'   => ['required','integer','exists:field_units,id'], // ✅ คอร์ต
+            'field_unit_id'   => ['required','integer','exists:field_units,id'], // คอร์ต
             'date'            => ['required','date'],
             'start_time'      => ['required','date_format:H:i'],
             'end_time'        => ['required','date_format:H:i','after:start_time'],
@@ -128,7 +128,7 @@ class BookingController extends Controller
             $booking = Booking::create([
                 'user_id'         => auth()->id(),
                 'sports_field_id' => $field->id,
-                'field_unit_id'   => $unit->id,         // ✅ บันทึกคอร์ต
+                'field_unit_id'   => $unit->id,         // บันทึกคอร์ต
                 'date'            => $date,
                 'start_time'      => $data['start_time'].':00',
                 'end_time'        => $data['end_time'].':00',

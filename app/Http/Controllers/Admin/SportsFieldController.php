@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class SportsFieldController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request) // แสดงรายการสนามพร้อมค้นหา/นับยูนิต และส่งไปหน้า index
     {
         $q = SportsField::withCount('units')->with('owner');
 
@@ -25,13 +25,13 @@ class SportsFieldController extends Controller
         return view('admin.fields.index', compact('fields'));
     }
 
-    public function create()
+    public function create() // แสดงฟอร์มสร้างสนามใหม่พร้อมรายชื่อ staff สำหรับกำหนด owner
     {
         $staffs = User::where('role','staff')->orderBy('name')->get(['id','name']);
         return view('admin.fields.create', compact('staffs'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request) // ตรวจสอบและบันทึกสนามใหม่ (owner ต้องเป็น staff) แล้วพาไปหน้าแก้ไขเพื่อเพิ่ม Units
     {
         $data = $request->validate([
             'name'   => 'required|string|max:120',
@@ -54,20 +54,20 @@ class SportsFieldController extends Controller
         return redirect()->route('admin.fields.edit', $field)->with('status','สร้างสนามสำเร็จ — เพิ่ม Units ได้ที่แท็บด้านล่าง');
     }
 
-    public function show(SportsField $field)
+    public function show(SportsField $field) // แสดงรายละเอียดสนาม (owner + จำนวน units)
     {
         $field->loadCount('units')->load('owner');
         return view('admin.fields.show', compact('field'));
     }
 
-    public function edit(SportsField $field)
+    public function edit(SportsField $field) // แสดงฟอร์มแก้ไขสนามพร้อมรายชื่อ staff และข้อมูลสรุปของสนาม
     {
         $staffs = User::where('role','staff')->orderBy('name')->get(['id','name']);
         $field->loadCount('units')->load('owner');
         return view('admin.fields.edit', compact('field','staffs'));
     }
 
-    public function update(Request $request, SportsField $field)
+    public function update(Request $request, SportsField $field) // ตรวจสอบและอัปเดตข้อมูลสนาม (รวมเงื่อนไข owner ต้องเป็น staff)
     {
         $data = $request->validate([
             'name'   => 'required|string|max:120',
@@ -89,7 +89,7 @@ class SportsFieldController extends Controller
         return redirect()->route('admin.fields.edit',$field)->with('status','อัปเดตสนามสำเร็จ');
     }
 
-    public function destroy(SportsField $field)
+    public function destroy(SportsField $field) // ลบสนามที่เลือกแล้วกลับไปหน้ารายการ
     {
         $field->delete();
         return redirect()->route('admin.fields.index')->with('status','ลบสนามสำเร็จ');

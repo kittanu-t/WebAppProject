@@ -14,7 +14,7 @@ use App\Models\UserNotification;
 
 class BookingController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request) // แสดงรายการจองพร้อมตัวกรอง (สถานะ/สนาม/ช่วงวันที่/คำค้น) และส่งข้อมูลไปหน้า index
     {
         $q = Booking::with(['sportsField','user'])
             ->orderByDesc('date')->orderBy('start_time');
@@ -47,7 +47,7 @@ class BookingController extends Controller
         return view('admin.bookings.index', compact('bookings','fields','statuses'));
     }
 
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(Request $request, $id) // เปลี่ยนสถานะการจองแบบทรานแซกชัน บันทึกล็อก และส่งโนติให้ผู้จอง
     {
         $data = $request->validate([
             'status' => ['required','in:pending,approved,rejected,cancelled,completed'],

@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request) // แสดงรายการผู้ใช้พร้อมค้นหาและแบ่งหน้า
     {
         $q = User::query();
 
@@ -28,18 +28,18 @@ class UserController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
-    public function create()
+    public function create() // แสดงฟอร์มสร้างผู้ใช้ใหม่
     {
         return view('admin.users.create');
     }
 
-    public function store(StoreUserRequest $request)
+    public function store(StoreUserRequest $request) // ตรวจสอบและบันทึกผู้ใช้ใหม่ (เข้ารหัสรหัสผ่าน) แล้วกลับไปหน้ารายการ
     {
         $data = $request->validate([
             'name' => ['required','string','max:100'],
             'email' => ['required','email','max:150','unique:users,email,'.$user->id],
             'phone' => ['nullable','string','max:30'],
-            'role' => ['required','in:admin,staff,user'],   // ✅ ต้องมี staff อยู่ใน in:
+            'role' => ['required','in:admin,staff,user'],  
             'active' => ['required','boolean'],
             'password' => ['nullable','confirmed','min:6'],
         ]);
@@ -56,23 +56,23 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('status','สร้างผู้ใช้สำเร็จ');
     }
 
-    public function show(User $user)
+    public function show(User $user) // แสดงรายละเอียดผู้ใช้รายเดียว
     {
         return view('admin.users.show', compact('user'));
     }
 
-    public function edit(User $user)
+    public function edit(User $user) // แสดงฟอร์มแก้ไขข้อมูลผู้ใช้
     {
         return view('admin.users.edit', compact('user'));
     }
 
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request, User $user) // ตรวจสอบและอัปเดตข้อมูลผู้ใช้ (กันลดสิทธิ์/ปิดใช้งานตัวเอง และอัปเดตรหัสผ่านถ้ามี)
     {
         $data = $request->validate([
             'name' => ['required','string','max:100'],
             'email' => ['required','email','max:150','unique:users,email,'.$user->id],
             'phone' => ['nullable','string','max:30'],
-            'role' => ['required','in:admin,staff,user'],   // ✅ ต้องมี staff อยู่ใน in:
+            'role' => ['required','in:admin,staff,user'],  
             'active' => ['required','boolean'],
             'password' => ['nullable','confirmed','min:6'],
         ]);
@@ -104,7 +104,7 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('status','อัปเดตผู้ใช้สำเร็จ');
     }
 
-    public function destroy(Request $request, User $user)
+    public function destroy(Request $request, User $user) // ลบผู้ใช้โดยกันการลบตัวเอง/แอดมินคนสุดท้าย และเคลียร์ owner สนามถ้าเป็น staff
     {
         // กันลบตัวเอง / กันลบแอดมินคนสุดท้าย
         if ($user->id === $request->user()->id) {

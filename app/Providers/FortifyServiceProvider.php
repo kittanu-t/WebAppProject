@@ -23,7 +23,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // bind ให้ Fortify ใช้ LoginResponse ของเราเอง
+        // bind ให้ Fortify ใช้ LoginResponse
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
     }
 

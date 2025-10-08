@@ -151,8 +151,8 @@ class InitialTestDataSeeder extends Seeder
         $today  = $now->copy()->toDateString();
         $tomorrow = $now->copy()->addDay()->toDateString();
 
-        // ===== BOOKINGS (ไม่ชนกันภายในคอร์ตเดียวกัน) =====
-        // เราจะสร้างจอง 6 รายการ:
+        // ===== BOOKINGS =====
+        // สร้างจอง 6 รายการ:
         // - 3 อนุมัติเรียบร้อย, 1 pending, 1 rejected, 1 cancelled
         $makeBooking = function(User $u, SportsField $f, FieldUnit $unit, string $date, string $start, string $end, string $status, ?User $approver=null) {
             $b = Booking::create([
