@@ -77,7 +77,7 @@ class BookingController extends Controller
 
             BookingLog::create([
                 'booking_id' => $b->id,
-                'action'     => $new, // ตรงกับ enum ที่กำหนด
+                'action'     => $new, 
                 'by_user_id' => $request->user()->id,
                 'note'       => $data['note'] ?? null,
                 'created_at' => now(),

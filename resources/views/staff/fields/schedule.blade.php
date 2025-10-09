@@ -100,8 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const url = `/api/fields/${fid}/units/${uid}/events?start=${encodeURIComponent(fetchInfo.start.toISOString())}&end=${encodeURIComponent(fetchInfo.end.toISOString())}`;
       fetch(url, { credentials:'same-origin' })
         .then(r => { if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-        .then(success)  // ✅ ส่งข้อมูล event ที่ได้ไปแสดงในปฏิทิน
-        .catch(failure); // ❌ กรณีโหลดไม่สำเร็จ
+        .then(success)  // ส่งข้อมูล event ที่ได้ไปแสดงในปฏิทิน
+        .catch(failure); // กรณีโหลดไม่สำเร็จ
     },
 
     // ตั้งค่าสีหรือคลาสของ event ตามประเภท (approved / pending / closure)

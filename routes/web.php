@@ -51,11 +51,6 @@ Route::get('/api/fields/{field}/units/{unit}/events', [FieldPublicController::cl
     ->name('fields.units.events');
 
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated routes
-|--------------------------------------------------------------------------
-*/
 Route::middleware(['auth', 'active', 'verified'])->group(function () {
 
     // Notifications

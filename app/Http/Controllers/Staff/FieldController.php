@@ -115,7 +115,6 @@ class FieldController extends Controller
         return back()->with('status', 'เปิดสนามทั้งก้อนเรียบร้อย');
     }
 
-    // ==== UNIT CLOSE/OPEN ====
     public function closeUnit(Request $request, $fieldId, $unitId) // ปิดเฉพาะยูนิต: บันทึก FieldClosure ของยูนิต, อัปเดตสถานะยูนิต, และสร้างประกาศ
     {
         $staff = $request->user();
