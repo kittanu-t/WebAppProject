@@ -13,12 +13,9 @@ use App\Models\FieldUnit;
 
 class BookingController extends Controller
 {
-    /**
-     * แสดงรายการ booking ของ user
-     */
     public function index()
     {
-        $bookings = Booking::with('sportsField')
+        $bookings = Booking::with(['sportsField', 'unit'])
             ->where('user_id', auth()->id())
             ->orderByDesc('date')
             ->orderBy('start_time')
@@ -27,22 +24,16 @@ class BookingController extends Controller
         return view('user.bookings.index', compact('bookings'));
     }
 
-    /**
-     * แสดงฟอร์มสร้าง booking ใหม่
-     */
     public function create(Request $request)
     {
         // โหลดสนามพร้อม units (สำหรับ prefill ตอนเปิดหน้าพร้อม field/unit จาก query)
         $fields   = \App\Models\SportsField::with('units')->orderBy('name')->get();
-        $prefield = $request->query('field');   // ?field=ID  (optional)
-        $preunit  = $request->query('unit');    // ?unit=ID   (optional)
+        $prefield = $request->query('field_id');       // ?field_id=ID
+        $preunit  = $request->query('field_unit_id');  // ?field_unit_id=ID
 
         return view('user.bookings.create', compact('fields','prefield','preunit'));
     }
 
-    /**
-     * บันทึก booking ใหม่
-     */
     public function store(Request $request)
     {
         // 1) Validate
@@ -149,9 +140,6 @@ class BookingController extends Controller
         return redirect()->route('bookings.index')->with('status', 'ส่งคำขอจองเรียบร้อย (รออนุมัติ)');
     }
 
-    /**
-     * ยกเลิก booking ของ user
-     */
     public function destroy($id)
     {
         $booking = Booking::where('user_id', auth()->id())->findOrFail($id);
@@ -163,6 +151,7 @@ class BookingController extends Controller
         DB::transaction(function () use ($booking) {
             $booking->status = 'cancelled';
             $booking->save();
+            $booking->delete();
 
             BookingLog::create([
                 'booking_id' => $booking->id,

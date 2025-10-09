@@ -7,10 +7,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
-{
+{   
+
     protected $fillable = [
-        'user_id','sports_field_id','date','start_time','end_time','status',
-        'purpose','contact_phone','approved_by','approved_at','cancel_reason',
+        'user_id',
+        'sports_field_id',
+        'field_unit_id',  
+        'date',
+        'start_time',
+        'end_time',
+        'status',
+        'purpose',
+        'contact_phone',
     ];
 
     protected $casts = [
@@ -25,7 +33,7 @@ class Booking extends Model
 
     public function sportsField() 
     { 
-        return $this->belongsTo(SportsField::class, 'sports_field_id'); 
+        return $this->belongsTo(SportsField::class, 'sports_field_id');
     }
 
     public function approver(): BelongsTo

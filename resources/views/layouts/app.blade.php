@@ -124,10 +124,6 @@
                                     </div>
                                 </template>
                             </div>
-
-                            <div class="mt-2 text-end px-1">
-                                <a href="{{ route('notifications.index') }}" class="small text-decoration-underline">View all</a>
-                            </div>
                         </div>
                     </li>
 

@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SportsField extends Model
-{
+{   
+    use SoftDeletes;
     protected $fillable = [
         'name','sport_type','location','capacity','status',
         'owner_id','min_duration_minutes','max_duration_minutes','lead_time_hours',
