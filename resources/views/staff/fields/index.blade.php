@@ -3,6 +3,52 @@
 @section('title','My Fields') 
 
 @section('content')
+<style>
+  .card {
+    background: #fff;
+    padding: 16px;
+    margin-bottom: 18px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  h1 {
+    font-weight: bold;
+    margin-bottom: 18px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #fff;
+  }
+  th, td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+  th {
+    background: #f9d71c;
+    color: #222;
+  }
+  .btn {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-yellow { background: #f9d71c; color: #000; }
+  .btn-red { background: #e63946; color: #fff; }
+  .btn-gray { background: #ddd; color: #333; }
+  .status-alert {
+    color: #b45309;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+</style>
 
 <h1>My Fields</h1>
 
